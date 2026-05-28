@@ -1,0 +1,8 @@
+{
+  "enableAllProjectMcpServers": true,
+  "env": {
+    "ATLASSIAN_DOMAIN": "jira.artem.internal",
+    "ATLASSIAN_EMAIL": "yash.modi@artemhealthtech.com",
+    "NODE_TLS_REJECT_UNAUTHORIZED": "0"
+  }
+}

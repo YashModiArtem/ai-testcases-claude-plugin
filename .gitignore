@@ -1,0 +1,46 @@
+# Credentials — NEVER commit these
+.env
+.env.*
+!.env.example
+.env.local
+*.token
+*.key
+*.pem
+*.secret
+*.credentials
+*.credential
+credentials.json
+secrets.json
+
+# Claude Code user settings — machine-specific, never commit
+.claude/settings.local.json
+
+# Node.js
+node_modules/
+*.log
+npm-debug.log*
+
+# Build outputs
+dist/
+build/
+out/
+
+# Test coverage
+coverage/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/settings.json
+
+# Playwright artifacts
+.playwright-mcp/
+
+# Temporary files
+*.tmp
+*.temp
