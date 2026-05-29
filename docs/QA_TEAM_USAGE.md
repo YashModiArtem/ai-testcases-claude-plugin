@@ -212,25 +212,32 @@ Full troubleshooting in `docs/JIRA_MCP_SETUP.md`.
 ```
 repo-root/
 ├── skills/                              # Active skills
-│   ├── jira-qa-testcase-generator/    # ACTIVE
-│   ├── confluence-extraction/          # FUTURE
-│   └── figma-ui-qa/                  # FUTURE
-├── commands/                          # Commands (Figma = FUTURE)
+│   ├── jira-qa-testcase-generator/     # ACTIVE — Jira test case generation
+│   ├── confluence-extraction/            # FUTURE — partial, not connected
+│   └── figma-ui-qa/                    # FUTURE — placeholder, no API key
+├── commands/                            # Slash commands
+│   ├── jira-qa-testcase-generator.md   # /jira-qa-testcase-generator
+│   ├── figma-design-review.md         # FUTURE — placeholder
+│   └── figma-screenshot.md            # FUTURE — placeholder
 ├── scripts/
-│   ├── setup-atlassian-mcp.js        # Patch script
-│   ├── load-env.ps1                 # Load .env.local into PowerShell
-│   └── jira-docker-test/             # Docker test (optional)
+│   ├── setup-atlassian-mcp.js         # Patch script
+│   ├── load-env.ps1                   # Load .env.local into PowerShell
+│   └── jira-docker-test/              # Connectivity test (optional)
 ├── docs/
-│   ├── QA_TEAM_USAGE.md             # ← You are here
-│   ├── JIRA_MCP_SETUP.md            # MCP configuration
-│   ├── CREDENTIALS_SETUP.md         # ← Set up your PAT first
-│   ├── INSTALLATION_CHECKLIST.md     # Pre-push validation
-│   └── FUTURE_INTEGRATIONS.md        # Roadmap
-├── .claude/                          # Project settings (safe to commit)
-├── .claude-plugin/                   # Plugin manifest
-├── .env.example                      # Credential template
-├── .env.local                       # Your credentials (gitignored)
-└── .gitignore                       # Excludes .env.local, tokens, keys
+│   ├── QA_TEAM_USAGE.md              # ← You are here
+│   ├── JIRA_MCP_SETUP.md             # MCP configuration
+│   ├── CREDENTIALS_SETUP.md          # ← Set up your PAT first
+│   ├── INSTALLATION_CHECKLIST.md      # Pre-push validation
+│   ├── FUTURE_INTEGRATIONS.md         # Roadmap
+│   └── legacy/
+│       └── claude-plugin-skills-backup/  # Archived duplicate skills
+├── .claude/                           # Project settings (safe to commit)
+├── .claude-plugin/
+│   └── plugin.json                    # Plugin manifest only
+├── .mcp.json                          # Jira MCP server registration
+├── .env.example                       # Credential template
+├── .env.local                        # Your credentials (gitignored)
+└── .gitignore                        # Excludes .env.local, tokens, keys
 ```
 
 ---
@@ -240,9 +247,12 @@ repo-root/
 | File | Purpose |
 |------|---------|
 | `skills/jira-qa-testcase-generator/SKILL.md` | Test case generation rules |
-| `.claude-plugin/plugin.json` | Plugin manifest + MCP config |
+| `commands/jira-qa-testcase-generator.md` | Slash command definition |
+| `.mcp.json` | Jira MCP server registration |
+| `.claude-plugin/plugin.json` | Plugin manifest |
 | `scripts/setup-atlassian-mcp.js` | Jira Data Center compatibility patch |
-| `scripts/jira-docker-test/` | Docker connectivity test (optional) |
+| `scripts/load-env.ps1` | Load credentials from .env.local |
+| `scripts/jira-docker-test/` | Connectivity test (optional) |
 | `.env.example` | Credential template |
 | `.env.local` | Your credentials (gitignored) |
 | `docs/JIRA_MCP_SETUP.md` | Full MCP setup and troubleshooting |

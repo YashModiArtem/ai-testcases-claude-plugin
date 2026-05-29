@@ -4,44 +4,5 @@
   "version": "1.0.0",
   "author": {
     "name": "QA Team"
-  },
-  "mcpServers": {
-    "figma": {
-      "type": "http",
-      "url": "https://mcp.figma.com/mcp"
-    },
-    "mcp-atlassian": {
-      "command": "cmd",
-      "args": ["/c", "atlassian-mcp"],
-      "env": {
-        "ATLASSIAN_DOMAIN": "${ATLASSIAN_DOMAIN}",
-        "ATLASSIAN_EMAIL": "${ATLASSIAN_EMAIL}",
-        "ATLASSIAN_API_TOKEN": "${ATLASSIAN_API_TOKEN}",
-        "NODE_TLS_REJECT_UNAUTHORIZED": "${NODE_TLS_REJECT_UNAUTHORIZED}"
-      }
-    },
-    "figma-developer-mcp": {
-      "command": "cmd",
-      "args": ["/c", "npx", "-y", "figma-developer-mcp", "--figma-api-key=${FIGMA_API_KEY}", "--stdio"],
-      "env": {
-        "FIGMA_API_KEY": "${FIGMA_API_KEY}"
-      },
-      "_comment": "FUTURE — requires FIGMA_API_KEY. Activate when Figma API key is obtained."
-    }
-  },
-  "commands": {
-    "figma-design-review": {
-      "description": "Review a Figma design by file key and node ID (FUTURE — no API key configured)"
-    },
-    "figma-screenshot": {
-      "description": "Take a screenshot of a Figma frame or page (FUTURE — no API key configured)"
-    }
-  },
-  "skills": [
-    {
-      "name": "jira-qa-testcase-generator",
-      "path": "../skills/jira-qa-testcase-generator",
-      "description": "Generate QA test cases from Jira tickets using Atlassian MCP"
-    }
-  ]
+  }
 }

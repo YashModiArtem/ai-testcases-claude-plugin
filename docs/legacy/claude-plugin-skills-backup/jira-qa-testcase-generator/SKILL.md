@@ -1,6 +1,6 @@
 ---
-description: Generate comprehensive QA test cases from Jira tickets using Atlassian MCP
-disable-model-invocation: true
+name: jira-qa-testcase-generator
+description: Generate structured QA test cases from internal Jira Data Center issues using local patched Atlassian MCP.
 ---
 
 # Jira QA Test Case Generator

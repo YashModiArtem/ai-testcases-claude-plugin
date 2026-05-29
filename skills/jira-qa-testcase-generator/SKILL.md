@@ -1,5 +1,6 @@
 ---
-description: Generate comprehensive QA test cases from Jira tickets using Atlassian MCP
+name: jira-qa-testcase-generator
+description: Generate structured QA test cases from internal Jira Data Center issues using local patched Atlassian MCP.
 ---
 
 # Jira QA Test Case Generator
@@ -97,18 +98,37 @@ Accepted Jira inputs:
 
 ---
 
+## Critical Workflow Rules
+
+**ALWAYS use the Skill tool first** when the user requests test case generation. The Skill tool loads these instructions — follow them exactly.
+
+**ALWAYS use Jira MCP tools first.** The local patched Atlassian MCP connects to internal Jira Data Center. Use `jira_get_issue`, `jira_search_issues`, `jira_get_transitions`, `jira_batch_get_changelogs`.
+
+**DO NOT silently bypass MCP with direct HTTPS calls in normal workflow.** Direct Node.js/HTTPS calls to Jira are a documented diagnostic fallback only — and only when the user explicitly asks for connectivity troubleshooting.
+
+**If MCP fails, stop.** Report the MCP error and the troubleshooting checklist below. Do not continue by making direct API calls.
+
 ## Constraints
 
 **DO NOT hallucinate requirements.** If Jira data is incomplete, explicitly say what is missing and what assumption was made. Do not invent requirements to fill gaps.
 
-**DO NOT use Confluence tools** — they are not connected.
+**DO NOT use Confluence tools** — they are not connected. Jira and Confluence are on separate hosts.
 
 **DO NOT generate test cases without fetching the actual Jira issue first** — always call `jira_get_issue` before generating.
 
-When Jira access fails:
+**DO NOT use Atlassian Cloud, OAuth, or any external cloud MCP dependency.** This plugin is for internal Jira Data Center only with PAT/Bearer auth.
+
+When Jira MCP access fails:
 1. Report the error
-2. Ask the user to verify: PAT is valid, env vars are set, `NODE_TLS_REJECT_UNAUTHORIZED=0`
-3. Suggest running `scripts/jira-docker-test/jira-test.js` to validate connectivity
+2. Ask the user to verify:
+   - `.env.local` has correct values for `ATLASSIAN_DOMAIN`, `ATLASSIAN_EMAIL`, `ATLASSIAN_API_TOKEN`
+   - `. .\scripts\load-env.ps1` was run
+   - Claude Code was restarted after loading env
+   - `/mcp --list` shows `mcp-atlassian`
+   - PAT is valid and not expired
+   - VPN/internal network access is active
+   - `NODE_TLS_REJECT_UNAUTHORIZED=0` is set if required
+3. Suggest running `node scripts/jira-docker-test/jira-test.js` to validate connectivity
 
 ---
 

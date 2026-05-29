@@ -174,10 +174,13 @@ Full troubleshooting in `docs/JIRA_MCP_SETUP.md`.
 ```
 repo-root/
 ├── skills/                              # Active skills
-│   ├── jira-qa-testcase-generator/     # ACTIVE
-│   ├── confluence-extraction/           # FUTURE
-│   └── figma-ui-qa/                    # FUTURE
-├── commands/                            # Commands (Figma = FUTURE)
+│   ├── jira-qa-testcase-generator/     # ACTIVE — Jira test case generation
+│   ├── confluence-extraction/           # FUTURE — partial, not connected
+│   └── figma-ui-qa/                    # FUTURE — placeholder, no API key
+├── commands/                            # Slash commands
+│   ├── jira-qa-testcase-generator.md   # /jira-qa-testcase-generator
+│   ├── figma-design-review.md          # FUTURE — placeholder
+│   └── figma-screenshot.md             # FUTURE — placeholder
 ├── scripts/
 │   ├── setup-atlassian-mcp.js          # Data Center patch (run once per install)
 │   ├── load-env.ps1                    # Load .env.local into PowerShell
@@ -188,14 +191,19 @@ repo-root/
 │   ├── JIRA_MCP_SETUP.md               # MCP configuration
 │   ├── CREDENTIALS_SETUP.md            # ← Create your PAT first
 │   ├── INSTALLATION_CHECKLIST.md       # Pre-push validation
-│   └── FUTURE_INTEGRATIONS.md          # Roadmap
+│   ├── FUTURE_INTEGRATIONS.md          # Roadmap
+│   └── legacy/
+│       └── claude-plugin-skills-backup/  # Archived duplicate skills
 ├── .claude/                            # Project settings (safe to commit)
-├── .claude-plugin/                     # Plugin manifest
-├── .mcp.json                           # MCP server registration
+├── .claude-plugin/
+│   └── plugin.json                     # Plugin manifest only (no MCP duplication)
+├── .mcp.json                           # Jira MCP server registration
 ├── my-first-plugin/                    # Legacy (preserved, do not modify)
 ├── .env.example                        # Credential template (safe to commit)
 └── .gitignore                          # Excludes .env.local, tokens, keys
 ```
+
+> **Note:** Skills were previously mirrored in `.claude-plugin/skills/`. That duplication has been removed — all active skills now live in root `skills/` only. The archived copies are in `docs/legacy/claude-plugin-skills-backup/`.
 
 ---
 
@@ -206,6 +214,7 @@ repo-root/
 | **Jira type** | Internal Jira Data Center |
 | **Auth** | PAT (Personal Access Token) with Bearer header |
 | **API** | Jira REST API v2 (patched from v3 for Data Center compatibility) |
+| **MCP registration** | `.mcp.json` at repo root |
 | **OAuth** | Not used — `atlassian@claude-plugins-official` is disabled |
 | **Confluence** | Separate host — not connected |
 | **Figma** | No API key — future placeholder |

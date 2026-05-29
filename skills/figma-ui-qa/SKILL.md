@@ -1,6 +1,6 @@
 ---
-description: Generate UI test cases from Figma designs (FUTURE — no API key configured)
-disable-model-invocation: true
+name: figma-ui-qa
+description: FUTURE placeholder skill for generating UI QA test cases from Figma screens/designs.
 ---
 
 # Figma UI QA (FUTURE / NOT YET IMPLEMENTED)

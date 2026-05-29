@@ -1,6 +1,6 @@
 ---
-description: Extract requirements from Confluence pages (FUTURE — not yet functional)
-disable-model-invocation: true
+name: confluence-extraction
+description: FUTURE placeholder skill for extracting requirements from Confluence pages.
 ---
 
 # Confluence Extraction (FUTURE / NOT YET IMPLEMENTED)
