@@ -1,8 +1,6 @@
 # Jira MCP Setup Guide
 
-**Status:** ACTIVE — Production-ready
-
-This guide explains how to set up the Jira MCP integration for QA test case generation.
+**Status:** ACTIVE — Production-ready for natural language generation.
 
 ---
 
@@ -38,6 +36,7 @@ Ticket JSON → Test cases (guided by skill)
 | **API** | Jira REST API v2 (patched from v3) |
 | **Confluence** | Separate host — not connected |
 | **Figma** | Not configured |
+| **MCP registration** | `.mcp.json` at repo root |
 
 ---
 
@@ -82,12 +81,12 @@ Patching complete.
 Create `.env.local` (from `.env.example`) with your Jira PAT:
 
 ```powershell
-cp .env.example .env.local
+copy .env.example .env.local
 notepad .env.local
 ```
 
 Set required values:
-```bash
+```
 ATLASSIAN_DOMAIN=jira.artem.internal
 ATLASSIAN_EMAIL=your-email@company.com
 ATLASSIAN_API_TOKEN=paste-your-pat-here
@@ -101,25 +100,24 @@ Load before starting Claude Code:
 
 ### 4. Enable local plugin (one-time per machine)
 
-Edit `~/.claude/settings.json`:
+Edit `~/.claude/settings.json` (your user home folder, NOT the project `.claude/settings.json`):
 
 ```json
 {
   "enabledPlugins": {
     "atlassian@claude-plugins-official": false,
-    ".claude-plugin@local": true,
-    "my-first-plugin@local": true
+    ".claude-plugin@local": true
   }
 }
 ```
 
-> **Important:** Both `.claude-plugin@local: true` AND `my-first-plugin@local: true` must be set. Both plugins are active — the MCP server is registered via `.mcp.json` at the repo root.
+> **Important:** `.claude-plugin@local: true` must be set. The plugin is registered via `.mcp.json` at the repo root.
 
 ### 4a. MCP Registration
 
-The Jira MCP server is registered via `.mcp.json` at the repo root. This file is auto-discovered by Claude Code when `enableAllProjectMcpServers: true` is set in `.claude/settings.json` (which it is). The `.mcp.json` approach is the recommended MCP registration method for plugins.
+The Jira MCP server is registered via `.mcp.json` at the repo root. This file is auto-discovered by Claude Code when `enableAllProjectMcpServers: true` is set in the project `.claude/settings.json` (which it is).
 
-`.mcp.json` must use the `mcpServers` wrapper:
+`.mcp.json` uses the `mcpServers` wrapper:
 
 ```json
 {
@@ -138,26 +136,31 @@ The Jira MCP server is registered via `.mcp.json` at the repo root. This file is
 }
 ```
 
-> Without the `mcpServers` wrapper, Claude Code project MCP discovery will not recognize the file.
+### 5. Validate
 
-### 5. Verify
-
-```
+```powershell
+. .\scripts\load-env.ps1
+claude
 /mcp --list
 ```
 
-Expected: `jira_get_issue`, `jira_search_issues`, `jira_list_projects`, `jira_add_comment`, and 40+ more.
+Expected: `mcp-atlassian Connected` with tools listed including `jira_get_issue`, `jira_search_issues`, `jira_list_projects`, `jira_add_comment`, `jira_get_transitions`, and 40+ more.
 
 ---
 
-## Environment Variables Reference
+## Required Environment Variables
 
 | Variable | Required | Source | Notes |
 |----------|----------|--------|-------|
-| `ATLASSIAN_DOMAIN` | Yes | `.env.local` | Jira host, no `https://` prefix |
-| `ATLASSIAN_EMAIL` | Yes | `.env.local` | Your Atlassian account email |
+| `ATLASSIAN_DOMAIN` | Yes | `.env.local` / `.claude/settings.json` | Jira host, no `https://` prefix |
+| `ATLASSIAN_EMAIL` | Yes | `.env.local` / `.claude/settings.json` | Your Atlassian account email |
 | `ATLASSIAN_API_TOKEN` | Yes | `.env.local` | Jira PAT — **never commit** |
-| `NODE_TLS_REJECT_UNAUTHORIZED` | Yes | `.env.local` | `0` for self-signed/corporate CA |
+| `NODE_TLS_REJECT_UNAUTHORIZED` | Yes | `.env.local` / `.claude/settings.json` | `0` for self-signed/corporate CA |
+
+### Where Variables Are Stored
+
+- `ATLASSIAN_DOMAIN`, `ATLASSIAN_EMAIL`, `NODE_TLS_REJECT_UNAUTHORIZED` are in both `.claude/settings.json` (project, safe to commit) and `.env.local` (user-specific)
+- `ATLASSIAN_API_TOKEN` is in `.env.local` only (never committed)
 
 ---
 
@@ -171,20 +174,21 @@ For a production setup, install the corporate root CA into your system's trust s
 
 ## Troubleshooting
 
-### MCP tools not showing up
+### MCP tools not showing up in `/mcp --list`
 
 1. Verify installed: `npm list -g @xuandev/atlassian-mcp`
 2. Run patch script: `node scripts/setup-atlassian-mcp.js`
-3. Restart Claude Code
-4. Check `~/.claude/settings.json` has BOTH `.claude-plugin@local: true` AND `my-first-plugin@local: true`
+3. Restart Claude Code completely
+4. Check `~/.claude/settings.json` (user home) has `.claude-plugin@local: true`
 5. Check `~/.claude/settings.json` has `atlassian@claude-plugins-official: false`
 6. Check `.mcp.json` exists at repo root with valid JSON
-7. Check `.claude/settings.json` has `enableAllProjectMcpServers: true`
+7. Check project `.claude/settings.json` has `enableAllProjectMcpServers: true`
 
 ### 401 Unauthorized
 
 - PAT is invalid or expired — create a new one at Jira → Profile → Personal Access Tokens
 - Check `ATLASSIAN_EMAIL` matches the account the PAT was created under
+- PAT must be a Jira Data Center PAT, not a Cloud PAT
 
 ### 403 Forbidden
 
@@ -199,6 +203,7 @@ For a production setup, install the corporate root CA into your system's trust s
 ### SSL/TLS Errors (CERT_HAS_EXPIRED, UNABLE_TO_VERIFY_LEAF_SIGNATURE)
 
 - Ensure `NODE_TLS_REJECT_UNAUTHORIZED=0` is set in `.env.local`
+- Run `. .\scripts\load-env.ps1` to reload
 - If persistent, corporate CA is not in trust store — contact IT
 
 ### Connection refused / Host not found
@@ -211,6 +216,12 @@ For a production setup, install the corporate root CA into your system's trust s
 - `atlassian@claude-plugins-official` is enabled in `~/.claude/settings.json`
 - Set `atlassian@claude-plugins-official: false`
 - The official cloud plugin conflicts with PAT-based Data Center setup
+
+### `mcp-atlassian` shows as "not connected"
+
+- Confirm `.env.local` exists and `ATLASSIAN_API_TOKEN` is set
+- Re-run `. .\scripts\load-env.ps1`
+- Check `ATLASSIAN_DOMAIN` matches your Jira host exactly (no `https://`)
 
 ---
 
@@ -263,25 +274,17 @@ If Docker test fails → network or auth problem.
 ## Skill Location
 
 Active skill: `skills/jira-qa-testcase-generator/SKILL.md` (root-level).
-Mirror: `.claude-plugin/skills/jira-qa-testcase-generator/SKILL.md` (identical).
+
+---
 
 ## Diagnostic Commands
-
-To verify the full plugin stack is working:
 
 ```
 /mcp --list
 ```
-Expected: `jira_get_issue`, `jira_search_issues`, `jira_list_projects`, etc.
+Expected: `mcp-atlassian Connected` with `jira_get_issue`, `jira_search_issues`, `jira_list_projects`, etc.
 
 To verify plugin loading, check Claude Code startup output for:
 - "Loaded plugin: qa-atlassian-plugin"
-- "Loaded plugin: my-first-plugin"
+- "Loaded plugin: qa-atlassian-plugin"
 - "MCP server mcp-atlassian started"
-
-If the Jira MCP does not appear in `/mcp --list`:
-1. Confirm `~/.claude/settings.json` has both `.claude-plugin@local: true` and `my-first-plugin@local: true`
-2. Confirm `npm list -g @xuandev/atlassian-mcp` is installed
-3. Run `node scripts/setup-atlassian-mcp.js` to apply the Data Center patch
-4. Confirm `.mcp.json` exists at the repo root
-5. Restart Claude Code completely

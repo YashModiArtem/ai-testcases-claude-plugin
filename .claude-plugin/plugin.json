@@ -4,5 +4,18 @@
   "version": "1.0.0",
   "author": {
     "name": "QA Team"
+  },
+  "skills": [
+    {
+      "name": "jira-qa-testcase-generator",
+      "path": "../skills/jira-qa-testcase-generator",
+      "description": "Generate QA test cases from Jira Data Center issues using local patched Atlassian MCP"
+    }
+  ],
+  "commands": {
+    "jira-qa-testcase-generator": {
+      "description": "Generate QA test cases from a Jira Data Center issue key or URL",
+      "path": "../commands/jira-qa-testcase-generator.md"
+    }
   }
 }

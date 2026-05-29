@@ -1,24 +1,42 @@
 # Future Integrations
 
-**Date:** 2026-05-28
-
-Roadmap for planned and partial integrations beyond Jira.
+**Date:** 2026-05-29
+**Status:** Jira is active. Confluence and Figma are planned/future.
 
 ---
 
 ## Status Overview
 
-| Integration | Status | ETA |
-|-------------|--------|-----|
-| **Jira QA Test Generation** | **ACTIVE** | Now |
-| **Confluence Extraction** | **PARTIAL / FUTURE** | TBD |
-| **Figma UI QA** | **PLANNED / FUTURE** | TBD |
+| Integration | Status | Verified |
+|-------------|--------|---------|
+| **Jira QA Test Generation** | **ACTIVE** | Yes — natural language command works |
+| **Plugin Slash Commands** | **PENDING** | Not yet validated |
+| **Confluence Extraction** | **PARTIAL / FUTURE** | Not connected |
+| **Figma UI QA** | **PLANNED / FUTURE** | No API key configured |
+
+---
+
+## Jira QA Test Generation — ACTIVE
+
+This is the primary active workflow. See `docs/QA_TEAM_USAGE.md` for daily usage.
+
+---
+
+## Plugin Slash Commands — PENDING VALIDATION
+
+Slash command invocation for `/jira-qa-testcase-generator` is still being validated. Until resolved, use the natural language form:
+
+```
+Generate test cases for BH-5474
+```
+
+See `docs/KNOWN_ISSUES.md` for details.
 
 ---
 
 ## Confluence Extraction
 
-**Status:** PARTIAL / FUTURE
+**Status:** PARTIAL / FUTURE — Not connected.
 
 ### Current State
 
@@ -52,72 +70,69 @@ See `skills/confluence-extraction/SKILL.md` for the placeholder skill.
 
 ## Figma UI QA
 
-**Status:** PLANNED / FUTURE
+**Status:** PLANNED / FUTURE — No API key configured.
 
 ### Current State
 
-- No Figma API key is configured anywhere
+- **No Figma API key is configured anywhere** — this integration is a placeholder
 - Figma MCP tools come from `figma@claude-plugins-official` (globally enabled)
 - Command definitions exist: `/figma-design-review`, `/figma-screenshot`
-- No actual Figma integration has been tested
-
-### What's Defined
-
-**Commands** (`commands/`):
-- `commands/figma-design-review.md` — Review a Figma design by file key (PLACEHOLDER)
-- `commands/figma-screenshot.md` — Screenshot a Figma frame (PLACEHOLDER)
-
-**Skill** (`skills/`):
-- `skills/figma-ui-qa/SKILL.md` — Placeholder defining intended behavior
+- No actual Figma integration has been tested with this project
+- Figma OAuth auth warning in Claude Code is **expected** and does not affect Jira functionality
 
 ### What Would Enable It
 
 1. Obtain a Figma API key from `figma.com/developers`
-2. Set `FIGMA_API_KEY` environment variable
-3. Update `plugin.json` to include `figma-developer-mcp` with the API key
+2. Set `FIGMA_API_KEY` environment variable in `.env.local`
+3. Update MCP configuration to include Figma developer MCP
 4. Test with a real Figma file
-5. Add `figma-ui-qa` skill reference to the plugin manifest
+5. Add Figma QA skill reference to the plugin manifest
 
-### Intended Capabilities
+### Intended Capabilities (when enabled)
 
 - Generate UI test cases from Figma designs
 - Validate layout against Figma specs
 - Generate component interaction tests
 - Accessibility validation from design contrast/spacing
-- Visual regression setup
+
+### IMPORTANT
+
+**Do not claim Figma is active.** It is a planned/placeholder integration. The Figma OAuth warning in Claude Code is expected — it does not indicate a problem with the Jira MCP.
 
 ---
 
-## Plugin Architecture
-
-The repository supports three integrations:
+## Repository Architecture
 
 ```
 repo-root/
-├── skills/                  # ACTIVE skill locations (root-level)
+├── skills/                  # ACTIVE skill locations
 │   ├── jira-qa-testcase-generator/SKILL.md   # ACTIVE
-│   ├── confluence-extraction/SKILL.md           # FUTURE
-│   └── figma-ui-qa/SKILL.md                   # FUTURE
+│   ├── confluence-extraction/SKILL.md           # FUTURE — placeholder
+│   └── figma-ui-qa/SKILL.md                   # FUTURE — placeholder
 ├── commands/
-│   ├── figma-design-review.md   # FUTURE / PLACEHOLDER
-│   └── figma-screenshot.md      # FUTURE / PLACEHOLDER
+│   ├── jira-qa-testcase-generator.md   # PENDING validation
+│   ├── figma-design-review.md   # FUTURE — placeholder
+│   └── figma-screenshot.md      # FUTURE — placeholder
 ├── scripts/
 │   ├── setup-atlassian-mcp.js
+│   ├── load-env.ps1
 │   └── jira-docker-test/
-├── .claude-plugin/           # Mirrors root-level for plugin discovery
-│   ├── plugin.json
-│   ├── skills/               # Identical to root-level skills/
-│   └── commands/             # Identical to root-level commands/
-├── my-first-plugin/          # LEGACY — preserved, do not modify
-└── docs/
-    ├── JIRA_MCP_SETUP.md
-    ├── QA_TEAM_USAGE.md
-    └── FUTURE_INTEGRATIONS.md
+├── docs/
+│   ├── QA_TEAM_USAGE.md
+│   ├── JIRA_MCP_SETUP.md
+│   ├── CREDENTIALS_SETUP.md
+│   ├── INSTALLATION_CHECKLIST.md
+│   ├── FUTURE_INTEGRATIONS.md  # ← You are here
+│   ├── KNOWN_ISSUES.md
+│   └── legacy/
+│       └── claude-plugin-skills-backup/
+├── .claude-plugin/
+│   ├── plugin.json            # Plugin manifest only
+│   ├── skills/               # Mirrors root-level skills/
+│   └── commands/             # Mirrors root-level commands/
 ```
 
-**Active convention:** `skills/` and `commands/` at the repo root are the canonical locations. `.claude-plugin/` mirrors them for plugin auto-discovery.
-
-**Legacy convention:** `my-first-plugin/` is the old structure, kept for backward compatibility.
+**Active convention:** `skills/` and `commands/` at the repo root are the canonical locations.
 
 ---
 
@@ -128,9 +143,7 @@ repo-root/
 Claude Code auto-detects plugins in:
 1. `~/.claude/plugins/` (global)
 2. `.claude-plugin/` in project root (local)
-3. `my-first-plugin/` (legacy local)
-
-This repo uses `.claude-plugin/` as the active local plugin. `my-first-plugin/` is kept for backward compat.
+3. `.claude-plugin/` in project root (local)
 
 ### Confluence MCP Limitation
 

@@ -2,8 +2,6 @@
 
 **Status:** REQUIRED — All QA users must complete this before using the plugin.
 
-This guide explains how to set up credentials safely for the Jira MCP integration.
-
 ---
 
 ## Overview
@@ -14,16 +12,31 @@ The plugin needs one credential to work:
 |-----------|----------|---------------|
 | Jira PAT | **Yes** | `.env.local` (never commit) |
 
-Everything else (domain, email, TLS flag) is already in `.claude/settings.json` in the repo.
+Everything else (domain, email, TLS flag) is already in project settings.
+
+---
+
+## Important: Three Different Credentials
+
+This project uses **three separate, independent credentials**:
+
+| Credential | Purpose | Where to Get |
+|-----------|---------|-------------|
+| **Jira PAT** | Authenticate to Jira Data Center API | Jira → Profile → Personal Access Tokens |
+| **GitHub PAT** | Authenticate to GitHub (pushing, cloning private repos) | GitHub → Settings → Developer Settings → Personal Access Tokens |
+| **Anthropic API Token** | Claude Code itself (used by the CLI tool) | Console.claude.ai or API keys page |
+
+**These are all different.** A GitHub PAT or Anthropic token cannot replace a Jira PAT.
 
 ---
 
 ## What NOT to Do
 
 - **Never** commit a real PAT, token, key, or password to Git
-- **Never** store credentials in `.claude/settings.json` (it's project-level and may be committed)
+- **Never** store credentials in `.claude/settings.json` (it may be committed)
 - **Never** put credentials in comments, docs, or Slack messages
 - **Never** use Atlassian Cloud OAuth — this repo uses Jira Data Center with PAT only
+- **Never** confuse Jira PAT with GitHub PAT or Anthropic API key
 
 ---
 
@@ -47,13 +60,12 @@ Go to your Jira instance: `https://jira.artem.internal` (or your internal URL)
 Create a file called `.env.local` in the repo root (the directory where you see `README.md`):
 
 ```powershell
-# Windows PowerShell
 notepad .env.local
 ```
 
 Add your values:
 
-```bash
+```
 ATLASSIAN_DOMAIN=jira.artem.internal
 ATLASSIAN_EMAIL=your-email@company.com
 ATLASSIAN_API_TOKEN=paste-your-pat-here
@@ -77,20 +89,30 @@ $env:ATLASSIAN_API_TOKEN = "your-pat-here"
 
 ---
 
+## Per-User Credential Model
+
+**Each QA user creates their own `.env.local`.** This file is:
+
+- **Unique to your machine** — different users have different PATs
+- **Never committed** — `.gitignore` excludes `.env.local` and `.env.*`
+- **Loaded per session** — run `. .\scripts\load-env.ps1` in every new terminal
+
+---
+
 ## File Reference
 
 | File | Safe to Commit? | Purpose |
 |------|---------------|---------|
 | `.env.example` | **Yes** | Template with placeholder values |
 | `.env.local` | **Never** | Your real credentials |
-| `.claude/settings.json` | **Yes** | Project env vars (domain, email, TLS flag — no PAT) |
-| `~/.claude/settings.json` | **Never** | Your personal Claude Code settings |
+| `.claude/settings.json` (project) | **Yes** | Project env vars (domain, email, TLS flag — no PAT) |
+| `~/.claude/settings.json` (user home) | **Never** | Your personal Claude Code settings |
 
 ---
 
 ## Loading .env.local Automatically (Optional)
 
-To avoid running `. .\.env.local` every time, add this to your PowerShell profile:
+To avoid running `load-env.ps1` every time, add this to your PowerShell profile:
 
 ```powershell
 # Find your profile path
@@ -100,8 +122,8 @@ $PROFILE
 notepad $PROFILE
 
 # Add this line (adjust path to your repo location)
-if (Test-Path "C:\path\to\your\repo\scripts\load-env.ps1") {
-    . "C:\path\to\your\repo\scripts\load-env.ps1"
+if (Test-Path "C:\path\to\AI TestCases\scripts\load-env.ps1") {
+    . "C:\path\to\AI TestCases\scripts\load-env.ps1"
 }
 ```
 
@@ -126,7 +148,7 @@ The PAT flows through this path:
 .env.local → $env:ATLASSIAN_API_TOKEN
                   │
                   ▼
-        .claude-plugin/plugin.json env substitution
+        .mcp.json env substitution
                   │
                   ▼
         cmd atlassian-mcp process
@@ -160,7 +182,7 @@ When they become relevant, follow the same pattern: store in `.env.local`, never
 The repo includes `.env.example` showing all supported variables with placeholder values. Copy it to `.env.local` and fill in your actual values:
 
 ```bash
-cp .env.example .env.local
+copy .env.example .env.local
 ```
 
 Then edit `.env.local` with your real credentials.

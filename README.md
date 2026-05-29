@@ -1,106 +1,12 @@
-# QA Automation Plugin for Claude Code
+# AI TestCases — BMC HMIS QA Plugin
 
-Generate structured test cases from Jira tickets using Claude Code and Atlassian MCP.
-
----
-
-## Verified Working Components
-
-| Component | Status | Details |
-|-----------|--------|---------|
-| **Jira Data Center** | Verified | Internal Jira Data Center connection |
-| **PAT Authentication** | Verified | Bearer token via Personal Access Token |
-| **Atlassian MCP** | Verified | `@xuandev/atlassian-mcp` with Data Center patch |
-| **Jira Issue Retrieval** | Verified | `jira_get_issue`, `jira_search_issues` |
-| **Test Case Generation** | Verified | Positive, negative, edge, regression, UI, accessibility |
-| **Claude Code Skill** | Verified | `jira-qa-testcase-generator` skill active |
-
-**Future Components**
-
-| Component | Status |
-|-----------|--------|
-| Confluence Extraction | Future — separate host, not connected |
-| Figma UI QA | Future — no API key configured |
-
----
-
-# Quick Start (5 Minutes)
-
-### Step 1 — Clone
-
-```powershell
-git clone <repo-url>
-cd <repo-name>
-code .
-```
-
-### Step 2 — Install MCP
-
-```powershell
-npm install -g @xuandev/atlassian-mcp
-```
-
-### Step 3 — Patch MCP for Data Center
-
-```powershell
-node scripts/setup-atlassian-mcp.js
-```
-
-> Re-run this after every `npm install -g @xuandev/atlassian-mcp` reinstall.
-
-### Step 4 — Create credentials
-
-```powershell
-copy .env.example .env.local
-```
-
-Edit `.env.local` with your values:
-
-```
-ATLASSIAN_DOMAIN=jira.artem.internal
-ATLASSIAN_EMAIL=your-email@company.com
-ATLASSIAN_API_TOKEN=your-jira-pat-here
-```
-
-See `docs/CREDENTIALS_SETUP.md` for how to create a Jira PAT.
-
-### Step 5 — Load credentials
-
-```powershell
-. .\scripts\load-env.ps1
-```
-
-> Run this every time you open a new PowerShell window before starting Claude Code.
-
-### Step 6 — Start Claude Code
-
-```powershell
-claude
-```
-
-### Step 7 — Verify MCP
-
-```
-/mcp --list
-```
-
-Expected output: `jira_get_issue`, `jira_search_issues`, `jira_list_projects`, and more.
-
-### Step 8 — Generate test cases
-
-```
-Generate test cases for BH-5532
-```
-
-That's it. The Jira ticket is fetched automatically and test cases are generated.
-
-For detailed step-by-step instructions, see `docs/QA_TEAM_USAGE.md`.
+**Purpose:** Generate structured test cases from Jira tickets using Claude Code and the Atlassian MCP integration.
 
 ---
 
 ## What This Does
 
-1. **Fetches** Jira ticket via `jira_get_issue` — title, description, labels, assignee, linked issues, changelog
+1. **Fetches** a Jira ticket via `jira_get_issue` — title, description, labels, assignee, linked issues, changelog
 2. **Finds** related issues via `jira_search_issues`
 3. **Generates** structured test cases: positive, negative, edge, regression, UI, accessibility, state transitions
 
@@ -108,50 +14,222 @@ Output per test case: ID, title, preconditions, steps, expected result, priority
 
 ---
 
-## Prerequisites
+## Active Workflow
 
-| Software | Required | Notes |
-|----------|----------|-------|
-| **Git** | Yes | `git-scm.com` |
-| **VS Code** | Yes | `code.visualstudio.com` |
-| **Node.js LTS** | Yes | `nodejs.org` — provides `npm` |
-| **Claude Code** | Yes | `claude.ai/code` |
-| **Jira network access** | Yes | VPN or internal network to Jira Data Center |
-| **Jira PAT** | Yes | Personal Access Token from Jira |
-| **Docker Desktop** | Optional | Only for `scripts/jira-docker-test/` connectivity test |
+```
+"Generate test cases for BH-5474"
+       │
+       ▼
+Claude Code fetches Jira ticket via mcp-atlassian
+       │
+       ▼
+Jira Data Center REST API v2 (Bearer / PAT auth)
+       │
+       ▼
+Structured test cases written to BH-5474_TestCases.md
+```
 
 ---
 
-## One-Time Machine Setup
+## Repository Structure
 
-Edit `~/.claude/settings.json` (your user home folder):
-
-```json
-{
-  "enabledPlugins": {
-    "atlassian@claude-plugins-official": false,
-    ".claude-plugin@local": true,
-    "my-first-plugin@local": true
-  }
-}
+```
+repo-root/
+├── skills/                              # Active skills
+│   ├── jira-qa-testcase-generator/     # ACTIVE — Jira test case generation
+│   ├── confluence-extraction/           # FUTURE — partial, not connected
+│   └── figma-ui-qa/                    # FUTURE — placeholder, no API key
+├── commands/                            # Slash commands
+│   ├── jira-qa-testcase-generator.md   # /jira-qa-testcase-generator (pending validation)
+│   ├── figma-design-review.md          # FUTURE — placeholder
+│   └── figma-screenshot.md             # FUTURE — placeholder
+├── scripts/
+│   ├── setup-atlassian-mcp.js          # Data Center patch (run once per install)
+│   ├── load-env.ps1                    # Load .env.local into PowerShell
+│   └── jira-docker-test/               # Connectivity test (optional)
+├── docs/                               # Documentation
+│   ├── QA_TEAM_USAGE.md               # ← QA users start here
+│   ├── QA_CHEAT_SHEET.md              # ← Quick daily reference
+│   ├── JIRA_MCP_SETUP.md              # MCP configuration
+│   ├── CREDENTIALS_SETUP.md           # PAT setup
+│   ├── INSTALLATION_CHECKLIST.md       # Pre-push validation
+│   ├── FUTURE_INTEGRATIONS.md         # Roadmap
+│   ├── KNOWN_ISSUES.md                # Current known issues
+│   └── legacy/                        # Archived artifacts
+├── .claude/                            # Project settings (safe to commit)
+├── .claude-plugin/
+│   └── plugin.json                    # Plugin manifest only
+├── .mcp.json                          # Jira MCP server registration
+├── .env.example                       # Credential template (safe to commit)
+├── .env.local                         # Your credentials (gitignored — never commit)
+└── .gitignore                         # Excludes .env.local, tokens, keys
 ```
 
-Both `.claude-plugin@local` and `my-first-plugin@local` must be enabled.
+---
+
+## QA Quick Start
+
+### 1. Clone and open
+
+```powershell
+git clone <repo-url>
+cd "AI TestCases"
+code .
+```
+
+### 2. Create credentials
+
+```powershell
+copy .env.example .env.local
+notepad .env.local
+```
+
+Fill in your Jira PAT (see `docs/CREDENTIALS_SETUP.md`).
+
+### 3. Start
+
+```powershell
+. .\scripts\load-env.ps1
+claude
+```
+
+### 4. Verify MCP
+
+```
+/mcp --list
+```
+
+Expected: `mcp-atlassian Connected` with Jira tools like `jira_get_issue`, `jira_search_issues`, etc.
+
+### 5. Generate test cases
+
+```
+Generate test cases for BH-5474
+```
+
+That's the verified working command. See `docs/QA_TEAM_USAGE.md` for full details.
+
+---
+
+## Credential Setup
+
+| Credential | Required | File | Safe to Commit? |
+|-----------|----------|------|-----------------|
+| Jira PAT | Yes | `.env.local` | **Never** |
+| Jira Domain | Yes | `.env.local` / `.claude/settings.json` | Project-level only |
+| Jira Email | Yes | `.env.local` / `.claude/settings.json` | Project-level only |
+| TLS flag | Yes | `.env.local` / `.claude/settings.json` | Project-level only |
+
+**Key rules:**
+- Each QA user creates their own `.env.local`
+- `.env.local` must **never** be committed
+- `.env.example` is safe to commit
+- Jira PAT is **different** from GitHub PAT and Anthropic API token
+
+See `docs/CREDENTIALS_SETUP.md` for full instructions.
+
+---
+
+## MCP Setup
+
+**Jira type:** Internal Jira Data Center (not Atlassian Cloud)
+**Auth:** PAT with Bearer token header (not OAuth)
+**API:** Jira REST API v2 (patched from v3)
+**MCP package:** `@xuandev/atlassian-mcp` (globally installed, locally patched)
+**MCP registration:** `.mcp.json` at repo root
+
+### Required Environment Variables
+
+| Variable | Value |
+|----------|-------|
+| `ATLASSIAN_DOMAIN` | `jira.artem.internal` |
+| `ATLASSIAN_EMAIL` | `your-email@company.com` |
+| `ATLASSIAN_API_TOKEN` | Your Jira PAT |
+| `NODE_TLS_REJECT_UNAUTHORIZED` | `0` |
+
+### One-Time Setup
+
+```powershell
+npm install -g @xuandev/atlassian-mcp
+node scripts/setup-atlassian-mcp.js
+```
+
+Re-run the patch script after every `npm install -g @xuandev/atlassian-mcp` reinstall.
+
+### MCP Validation
+
+```powershell
+. .\scripts\load-env.ps1
+claude
+/mcp --list
+```
+
+Expected: `mcp-atlassian Connected` with Jira tools listed.
+
+See `docs/JIRA_MCP_SETUP.md` for full setup and troubleshooting.
+
+---
+
+## Daily Usage
+
+```powershell
+cd "C:\path\to\AI TestCases"
+. .\scripts\load-env.ps1
+claude
+```
+
+Then use natural language commands:
+
+```
+Generate test cases for BH-5474
+```
+
+This is the **verified working command**. It fetches the Jira ticket and generates test cases in a `.md` file.
+
+### Other Commands
+
+```
+Generate test cases for BH-5314
+Generate regression suite for BH-5532
+Find all issues related to BH-5532
+```
+
+### Planned Slash Commands (Pending Validation)
+
+The following plugin slash commands are defined but still pending final validation:
+
+```
+/jira-qa-testcase-generator BH-5474
+/qa-atlassian-plugin:jira-qa-testcase-generator BH-5474
+```
+
+Do **not** rely on these yet. Use the natural language form above.
+
+---
+
+## Known Pending Issue: Plugin Slash Command Invocation
+
+The plugin slash command invocation is **not yet fully resolved**. Specifically:
+
+- `/jira-qa-testcase-generator` and `/qa-atlassian-plugin:jira-qa-testcase-generator` may not invoke correctly
+- Natural language generation (`Generate test cases for BH-5474`) is **verified and supported**
+- This is documented in `docs/KNOWN_ISSUES.md`
+
+Until resolved, always use the natural language form.
 
 ---
 
 ## Troubleshooting
 
-| Problem | Cause | Fix |
+| Symptom | Cause | Fix |
 |---------|-------|-----|
 | `/mcp --list` shows nothing | MCP not loaded | Run `. .\scripts\load-env.ps1`, then restart Claude Code |
-| Jira MCP not in list | Plugins not enabled | Confirm BOTH `.claude-plugin@local: true` AND `my-first-plugin@local: true` in `~/.claude/settings.json` |
 | `401 Unauthorized` | Invalid or expired PAT | Create a new Jira PAT — see `docs/CREDENTIALS_SETUP.md` |
-| SSL/TLS error | Corporate CA not trusted | `NODE_TLS_REJECT_UNAUTHORIZED=0` is already set in project settings |
-| `jira.artem.internal not found` | VPN disconnected | Connect to VPN or check network access |
-| Skill loads but Jira fails | MCP not running | Run `/mcp --list` and confirm Jira tools appear |
+| SSL/TLS error | Corporate CA not trusted | `NODE_TLS_REJECT_UNAUTHORIZED=0` is already set |
+| `jira.artem.internal not found` | VPN disconnected | Connect to VPN |
 | OAuth popup appears | Cloud plugin enabled | Set `atlassian@claude-plugins-official: false` in `~/.claude/settings.json` |
-| Figma auth warning | Expected | Ignore — Figma is a future integration, not active |
+| Figma auth warning | Expected | Ignore — Figma is a future integration |
+| Skill loads but Jira fails | MCP not running | Run `/mcp --list` and confirm Jira tools appear |
 
 Full troubleshooting in `docs/JIRA_MCP_SETUP.md`.
 
@@ -166,44 +244,41 @@ Full troubleshooting in `docs/JIRA_MCP_SETUP.md`.
 5. **Using Atlassian Cloud credentials** — This setup uses Jira Data Center with a PAT. Cloud OAuth is disabled and not supported.
 6. **Committed `.env.local` accidentally** — Never commit `.env.local`. It contains your PAT. If committed, rotate the PAT immediately.
 7. **Forgetting to re-patch after `npm install`** — Re-run `node scripts/setup-atlassian-mcp.js` after every global MCP reinstall.
+8. **Using slash commands instead of natural language** — Until pending validation is complete, use `Generate test cases for BH-XXXX` instead.
 
 ---
 
-## Repository Structure
+## Git Safety Notes
 
-```
-repo-root/
-├── skills/                              # Active skills
-│   ├── jira-qa-testcase-generator/     # ACTIVE — Jira test case generation
-│   ├── confluence-extraction/           # FUTURE — partial, not connected
-│   └── figma-ui-qa/                    # FUTURE — placeholder, no API key
-├── commands/                            # Slash commands
-│   ├── jira-qa-testcase-generator.md   # /jira-qa-testcase-generator
-│   ├── figma-design-review.md          # FUTURE — placeholder
-│   └── figma-screenshot.md             # FUTURE — placeholder
-├── scripts/
-│   ├── setup-atlassian-mcp.js          # Data Center patch (run once per install)
-│   ├── load-env.ps1                    # Load .env.local into PowerShell
-│   └── jira-docker-test/               # Connectivity test (optional)
-├── docs/
-│   ├── QA_TEAM_USAGE.md                # ← Start here for detailed guide
-│   ├── QA_CHEAT_SHEET.md              # ← Quick daily reference
-│   ├── JIRA_MCP_SETUP.md               # MCP configuration
-│   ├── CREDENTIALS_SETUP.md            # ← Create your PAT first
-│   ├── INSTALLATION_CHECKLIST.md       # Pre-push validation
-│   ├── FUTURE_INTEGRATIONS.md          # Roadmap
-│   └── legacy/
-│       └── claude-plugin-skills-backup/  # Archived duplicate skills
-├── .claude/                            # Project settings (safe to commit)
-├── .claude-plugin/
-│   └── plugin.json                     # Plugin manifest only (no MCP duplication)
-├── .mcp.json                           # Jira MCP server registration
-├── my-first-plugin/                    # Legacy (preserved, do not modify)
-├── .env.example                        # Credential template (safe to commit)
-└── .gitignore                          # Excludes .env.local, tokens, keys
-```
+**Never commit:**
+- `.env.local` — your personal PAT and credentials
+- `~/.claude/settings.json` — machine-specific settings
+- Any file containing real tokens, keys, or passwords
 
-> **Note:** Skills were previously mirrored in `.claude-plugin/skills/`. That duplication has been removed — all active skills now live in root `skills/` only. The archived copies are in `docs/legacy/claude-plugin-skills-backup/`.
+**Safe to commit:**
+- `.env.example` — template with placeholder values
+- All `.md` documentation files
+- `.gitignore` — credential patterns are already excluded
+- `.claude/settings.json` — project-level env vars (no PAT)
+- `.mcp.json` — MCP registration (no credentials)
+
+**Before pushing:**
+1. Run `git status` — confirm `.env.local` is not staged
+2. Confirm no credentials in any committed file
+3. Validate JSON files with `node -e "JSON.parse(require('fs').readFileSync('file.json'))"`
+
+---
+
+## Status Overview
+
+| Component | Status |
+|-----------|--------|
+| Jira Data Center MCP | **ACTIVE** |
+| PAT Authentication | **ACTIVE** |
+| Natural language test generation | **ACTIVE** (verified) |
+| Plugin slash commands | **PENDING** |
+| Confluence integration | FUTURE / partial |
+| Figma integration | FUTURE / placeholder |
 
 ---
 
@@ -213,20 +288,10 @@ repo-root/
 |--|--|
 | **Jira type** | Internal Jira Data Center |
 | **Auth** | PAT (Personal Access Token) with Bearer header |
-| **API** | Jira REST API v2 (patched from v3 for Data Center compatibility) |
+| **API** | Jira REST API v2 (patched from v3) |
 | **MCP registration** | `.mcp.json` at repo root |
 | **OAuth** | Not used — `atlassian@claude-plugins-official` is disabled |
 | **Confluence** | Separate host — not connected |
 | **Figma** | No API key — future placeholder |
 
----
-
-## Credential Safety
-
-**Never commit real credentials to Git.**
-
-- `.env.local` — your personal PAT and credentials. **Must be gitignored.** Create from `.env.example`.
-- `.env.example` — template with placeholder values. **Safe to commit.**
-- `~/.claude/settings.json` — machine-specific. **Never commit this.**
-
-See `docs/CREDENTIALS_SETUP.md` for full credential guide.
+For full details, see `docs/JIRA_MCP_SETUP.md`.

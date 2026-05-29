@@ -1,6 +1,8 @@
 # Installation Checklist
 
-Use this checklist before your first push and before each new team member sets up the plugin.
+Use this checklist for new team member setup and pre-push validation.
+
+---
 
 ## Pre-Clone Prerequisites
 
@@ -8,27 +10,32 @@ Use this checklist before your first push and before each new team member sets u
 - [ ] **VS Code** installed (`code --version`)
 - [ ] **Node.js LTS** installed (`node --version` and `npm --version`)
 - [ ] **Claude Code** installed (`claude --version`)
-- [ ] **Docker Desktop** installed (optional — only for Docker-based Jira test)
+- [ ] **Docker Desktop** installed (optional — only for Docker-based Jira connectivity test)
 - [ ] **VPN** connected / network access to Jira Data Center
 - [ ] **Jira PAT** created (see `docs/CREDENTIALS_SETUP.md`)
+
+---
 
 ## Clone and Open
 
 - [ ] Clone the repo: `git clone <repo-url>`
-- [ ] Open in VS Code: `code <repo-name>`
+- [ ] Open in VS Code: `code "AI TestCases"`
+
+---
 
 ## Credentials
 
 - [ ] Copy `.env.example` to `.env.local`:
   ```powershell
-  cp .env.example .env.local   # Linux/macOS
-  copy .env.example .env.local  # Windows cmd
+  copy .env.example .env.local
   ```
 - [ ] Edit `.env.local` with your real values:
   - `ATLASSIAN_API_TOKEN` — your Jira PAT (required)
-  - `ATLASSIAN_DOMAIN` — your Jira host
-  - `ATLASSIAN_EMAIL` — your Jira email
-- [ ] Verify `.env.local` is NOT committed to Git (check `.gitignore` contains `.env.local`)
+  - `ATLASSIAN_DOMAIN` — your Jira host (already set in `.claude/settings.json`)
+  - `ATLASSIAN_EMAIL` — your Jira email (already set in `.claude/settings.json`)
+- [ ] Verify `.env.local` is **not** committed to Git (`.gitignore` contains `.env.local`)
+
+---
 
 ## MCP Server Setup (One-Time Per Machine)
 
@@ -43,31 +50,33 @@ Use this checklist before your first push and before each new team member sets u
 - [ ] Verify patch succeeded:
   ```
   Patching @xuandev/atlassian-mcp for Jira Data Center...
-    [OK]   auth.js - already patched or unchanged
-    [OK]   api.js - already patched or unchanged
+    [OK]   auth.js
+    [OK]   api.js
   Patching complete.
   ```
+
+---
 
 ## Claude Code Configuration (One-Time Per Machine)
 
 - [ ] Edit `~/.claude/settings.json` (your user home folder):
 - [ ] Add `.claude-plugin@local: true` to `enabledPlugins`
-- [ ] Add `my-first-plugin@local: true` to `enabledPlugins`
 - [ ] Add `"atlassian@claude-plugins-official": false` to `enabledPlugins`
-- [ ] Verify `~/.claude/settings.json` is NOT committed to Git
+- [ ] Verify `~/.claude/settings.json` is **not** committed to Git
 
 > Your `~/.claude/settings.json` looks like:
 > ```json
 > {
 >   "enabledPlugins": {
 >     "atlassian@claude-plugins-official": false,
->     ".claude-plugin@local": true,
->     "my-first-plugin@local": true
+>     ".claude-plugin@local": true
 >   }
 > }
 > ```
 
-> **Note:** Both `.claude-plugin@local` and `my-first-plugin@local` must be enabled. Both plugins are active. The Jira MCP server is registered via `.mcp.json` at the repo root.
+> **Note:** `.claude-plugin@local` must be enabled. The Jira MCP server is registered via `.mcp.json` at the repo root.
+
+---
 
 ## Project Settings (Already in Repo)
 
@@ -75,23 +84,28 @@ Use this checklist before your first push and before each new team member sets u
 - [ ] Verify `ATLASSIAN_DOMAIN`, `ATLASSIAN_EMAIL`, `NODE_TLS_REJECT_UNAUTHORIZED` are set
 - [ ] Verify `.mcp.json` exists at repo root (MCP registration)
 
+---
+
 ## Start Claude Code
 
 - [ ] Load your credentials:
   ```powershell
-  . .\scripts\load-env.ps1   # Windows PowerShell
+  . .\scripts\load-env.ps1
   ```
 - [ ] Start Claude Code:
   ```bash
   claude
   ```
 
-## Verify MCP Is Loaded
+---
+
+## MCP Validation
 
 - [ ] In Claude Code, run:
   ```
   /mcp --list
   ```
+- [ ] Confirm `mcp-atlassian Connected` appears
 - [ ] Confirm these tools appear:
   - `jira_get_issue`
   - `jira_search_issues`
@@ -100,15 +114,20 @@ Use this checklist before your first push and before each new team member sets u
   - `jira_get_transitions`
   - (and 40+ more Jira/Confluence tools)
 
-## Test the Skill
+---
+
+## Natural Language Test Generation
 
 - [ ] Run this in Claude Code:
   ```
-  Generate test cases for BH-3850
+  Generate test cases for BH-5474
   ```
 - [ ] Confirm a Jira issue is fetched and test cases are generated
+- [ ] Confirm output file `BH-5474_TestCases.md` is created
 - [ ] If 401 Unauthorized: check your PAT in `.env.local` is correct
 - [ ] If SSL error: confirm `NODE_TLS_REJECT_UNAUTHORIZED=0` is set
+
+---
 
 ## Docker Test (Optional)
 
@@ -128,34 +147,44 @@ Use this checklist before your first push and before each new team member sets u
 - [ ] If this succeeds but MCP fails: the MCP layer has an issue
 - [ ] If this fails: network or auth problem — check VPN, PAT, TLS settings
 
-## Final Validation
-
-- [ ] `.gitignore` includes `.env.local` and `.env.*`
-- [ ] `.env.example` exists and contains NO real credentials
-- [ ] No `.env.local` file is staged or committed (`git status`)
-- [ ] `~/.claude/settings.json` is not in the repo
-- [ ] `docs/CREDENTIALS_SETUP.md` read and understood
-- [ ] Team member can independently run `Generate test cases for BH-3850`
-
-## Push Checklist (Before Committing)
-
-Before pushing changes to the repo:
-
-- [ ] No real credentials in any committed file
-- [ ] `.env.local` is not staged (`git status`)
-- [ ] `~/.claude/settings.json` changes are not staged
-- [ ] `.gitignore` covers all credential patterns
-- [ ] JSON files are valid (`node -e "JSON.parse(require('fs').readFileSync('file.json'))"`)
-- [ ] All docs reference correct paths
-- [ ] README links work
+---
 
 ## Troubleshooting Failed Items
 
 | Item | Common Fix |
 |------|-----------|
-| MCP tools not in `/mcp --list` | Enable BOTH `.claude-plugin@local: true` AND `my-first-plugin@local: true` in `~/.claude/settings.json` |
+| MCP tools not in `/mcp --list` | Enable `.claude-plugin@local: true` in `~/.claude/settings.json` |
+| `mcp-atlassian` shows as not connected | Confirm `.env.local` exists, re-run `. .\scripts\load-env.ps1`, restart Claude Code |
 | OAuth popup appears | Set `atlassian@claude-plugins-official: false` in `~/.claude/settings.json` |
 | 401 Unauthorized | PAT wrong or expired — get new one from Jira |
-| SSL/TLS error | Set `NODE_TLS_REJECT_UNAUTHORIZED=0` in `.env.local` |
+| SSL/TLS error | Set `NODE_TLS_REJECT_UNAUTHORIZED=0` in `.env.local`, re-run `load-env.ps1` |
 | `jira.artem.internal` not found | Connect to VPN / check network access |
 | Patch script fails | Re-run `npm install -g @xuandev/atlassian-mcp` then re-patch |
+
+---
+
+## Pre-Push Safety Checklist
+
+Before pushing changes to the repo:
+
+- [ ] `.gitignore` includes `.env.local` and `.env.*`
+- [ ] `.env.example` exists and contains **no real credentials**
+- [ ] No `.env.local` file is staged or committed (`git status`)
+- [ ] `~/.claude/settings.json` changes are **not** staged
+- [ ] `.gitignore` covers all credential patterns
+- [ ] JSON files are valid (`node -e "JSON.parse(require('fs').readFileSync('file.json'))"`)
+- [ ] All docs reference correct paths and filenames
+- [ ] README links work
+- [ ] No test case files with real patient data are committed (test cases use placeholder data)
+
+---
+
+## Team Member Independence
+
+Each QA team member should be able to independently:
+
+1. Clone the repo
+2. Create their own `.env.local` from `.env.example`
+3. Install and patch the MCP
+4. Configure their local `~/.claude/settings.json`
+5. Run `Generate test cases for BH-3850` successfully
