@@ -96,7 +96,7 @@ NODE_TLS_REJECT_UNAUTHORIZED=0
 
 Load before starting Claude Code:
 ```powershell
-. .\.env.local
+. .\scripts\load-env.ps1
 ```
 
 ### 4. Enable local plugin (one-time per machine)
@@ -107,10 +107,38 @@ Edit `~/.claude/settings.json`:
 {
   "enabledPlugins": {
     "atlassian@claude-plugins-official": false,
-    ".claude-plugin@local": true
+    ".claude-plugin@local": true,
+    "my-first-plugin@local": true
   }
 }
 ```
+
+> **Important:** Both `.claude-plugin@local: true` AND `my-first-plugin@local: true` must be set. Both plugins are active — the MCP server is registered via `.mcp.json` at the repo root.
+
+### 4a. MCP Registration
+
+The Jira MCP server is registered via `.mcp.json` at the repo root. This file is auto-discovered by Claude Code when `enableAllProjectMcpServers: true` is set in `.claude/settings.json` (which it is). The `.mcp.json` approach is the recommended MCP registration method for plugins.
+
+`.mcp.json` must use the `mcpServers` wrapper:
+
+```json
+{
+  "mcpServers": {
+    "mcp-atlassian": {
+      "command": "cmd",
+      "args": ["/c", "atlassian-mcp"],
+      "env": {
+        "ATLASSIAN_DOMAIN": "${ATLASSIAN_DOMAIN}",
+        "ATLASSIAN_EMAIL": "${ATLASSIAN_EMAIL}",
+        "ATLASSIAN_API_TOKEN": "${ATLASSIAN_API_TOKEN}",
+        "NODE_TLS_REJECT_UNAUTHORIZED": "${NODE_TLS_REJECT_UNAUTHORIZED:-0}"
+      }
+    }
+  }
+}
+```
+
+> Without the `mcpServers` wrapper, Claude Code project MCP discovery will not recognize the file.
 
 ### 5. Verify
 
@@ -148,8 +176,10 @@ For a production setup, install the corporate root CA into your system's trust s
 1. Verify installed: `npm list -g @xuandev/atlassian-mcp`
 2. Run patch script: `node scripts/setup-atlassian-mcp.js`
 3. Restart Claude Code
-4. Check `~/.claude/settings.json` has `.claude-plugin@local: true`
+4. Check `~/.claude/settings.json` has BOTH `.claude-plugin@local: true` AND `my-first-plugin@local: true`
 5. Check `~/.claude/settings.json` has `atlassian@claude-plugins-official: false`
+6. Check `.mcp.json` exists at repo root with valid JSON
+7. Check `.claude/settings.json` has `enableAllProjectMcpServers: true`
 
 ### 401 Unauthorized
 
@@ -234,3 +264,24 @@ If Docker test fails → network or auth problem.
 
 Active skill: `skills/jira-qa-testcase-generator/SKILL.md` (root-level).
 Mirror: `.claude-plugin/skills/jira-qa-testcase-generator/SKILL.md` (identical).
+
+## Diagnostic Commands
+
+To verify the full plugin stack is working:
+
+```
+/mcp --list
+```
+Expected: `jira_get_issue`, `jira_search_issues`, `jira_list_projects`, etc.
+
+To verify plugin loading, check Claude Code startup output for:
+- "Loaded plugin: qa-atlassian-plugin"
+- "Loaded plugin: my-first-plugin"
+- "MCP server mcp-atlassian started"
+
+If the Jira MCP does not appear in `/mcp --list`:
+1. Confirm `~/.claude/settings.json` has both `.claude-plugin@local: true` and `my-first-plugin@local: true`
+2. Confirm `npm list -g @xuandev/atlassian-mcp` is installed
+3. Run `node scripts/setup-atlassian-mcp.js` to apply the Data Center patch
+4. Confirm `.mcp.json` exists at the repo root
+5. Restart Claude Code completely

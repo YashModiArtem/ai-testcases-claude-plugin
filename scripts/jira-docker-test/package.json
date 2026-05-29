@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "description": "Jira connectivity test via Docker",
   "dependencies": {
-    "axios": "^1.7.2"
+    "axios": "^1.16.1"
   }
 }

@@ -66,7 +66,7 @@ Save and close.
 
 ```powershell
 # Windows PowerShell — run this in every new terminal session
-. .\.env.local   # note the dot and space before the path
+. .\scripts\load-env.ps1   # note the dot and space before the path
 ```
 
 Or set it manually:
@@ -100,8 +100,8 @@ $PROFILE
 notepad $PROFILE
 
 # Add this line (adjust path to your repo location)
-if (Test-Path "C:\path\to\your\repo\.env.local") {
-    . "C:\path\to\your\repo\.env.local"
+if (Test-Path "C:\path\to\your\repo\scripts\load-env.ps1") {
+    . "C:\path\to\your\repo\scripts\load-env.ps1"
 }
 ```
 

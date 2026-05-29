@@ -78,10 +78,13 @@ Edit `~/.claude/settings.json` (your user home folder):
 {
   "enabledPlugins": {
     "atlassian@claude-plugins-official": false,
-    ".claude-plugin@local": true
+    ".claude-plugin@local": true,
+    "my-first-plugin@local": true
   }
 }
 ```
+
+> **Important:** Both `.claude-plugin@local: true` AND `my-first-plugin@local: true` must be set. Both plugins are active. The Jira MCP server is registered via `.mcp.json` at the repo root.
 
 This is machine-specific. Do not commit `~/.claude/settings.json` to Git.
 
@@ -89,7 +92,7 @@ This is machine-specific. Do not commit `~/.claude/settings.json` to Git.
 
 ```powershell
 # Load your credentials from .env.local
-. .\.env.local
+. .\scripts\load-env.ps1
 
 # Start Claude Code
 claude
@@ -194,7 +197,7 @@ No Figma API key is set up. The Figma skill and commands are placeholders.
 
 | Problem | Solution |
 |---------|----------|
-| `/mcp --list` shows nothing | Verify `~/.claude/settings.json` has `.claude-plugin@local: true` |
+| `/mcp --list` shows nothing | Verify BOTH `.claude-plugin@local: true` AND `my-first-plugin@local: true` in `~/.claude/settings.json` |
 | OAuth popup appears | Set `atlassian@claude-plugins-official: false` in `~/.claude/settings.json` |
 | 401 Unauthorized | PAT is wrong or expired — get a new one from Jira |
 | SSL/TLS error | Set `NODE_TLS_REJECT_UNAUTHORIZED=0` in `.env.local` |
@@ -215,6 +218,7 @@ repo-root/
 ├── commands/                          # Commands (Figma = FUTURE)
 ├── scripts/
 │   ├── setup-atlassian-mcp.js        # Patch script
+│   ├── load-env.ps1                 # Load .env.local into PowerShell
 │   └── jira-docker-test/             # Docker test (optional)
 ├── docs/
 │   ├── QA_TEAM_USAGE.md             # ← You are here

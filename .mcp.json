@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "mcp-atlassian": {
+      "command": "cmd",
+      "args": ["/c", "atlassian-mcp"],
+      "env": {
+        "ATLASSIAN_DOMAIN": "${ATLASSIAN_DOMAIN}",
+        "ATLASSIAN_EMAIL": "${ATLASSIAN_EMAIL}",
+        "ATLASSIAN_API_TOKEN": "${ATLASSIAN_API_TOKEN}",
+        "NODE_TLS_REJECT_UNAUTHORIZED": "${NODE_TLS_REJECT_UNAUTHORIZED:-0}"
+      }
+    }
+  }
+}

@@ -52,6 +52,7 @@ Use this checklist before your first push and before each new team member sets u
 
 - [ ] Edit `~/.claude/settings.json` (your user home folder):
 - [ ] Add `.claude-plugin@local: true` to `enabledPlugins`
+- [ ] Add `my-first-plugin@local: true` to `enabledPlugins`
 - [ ] Add `"atlassian@claude-plugins-official": false` to `enabledPlugins`
 - [ ] Verify `~/.claude/settings.json` is NOT committed to Git
 
@@ -60,21 +61,25 @@ Use this checklist before your first push and before each new team member sets u
 > {
 >   "enabledPlugins": {
 >     "atlassian@claude-plugins-official": false,
->     ".claude-plugin@local": true
+>     ".claude-plugin@local": true,
+>     "my-first-plugin@local": true
 >   }
 > }
 > ```
+
+> **Note:** Both `.claude-plugin@local` and `my-first-plugin@local` must be enabled. Both plugins are active. The Jira MCP server is registered via `.mcp.json` at the repo root.
 
 ## Project Settings (Already in Repo)
 
 - [ ] Verify `.claude/settings.json` has `enableAllProjectMcpServers: true`
 - [ ] Verify `ATLASSIAN_DOMAIN`, `ATLASSIAN_EMAIL`, `NODE_TLS_REJECT_UNAUTHORIZED` are set
+- [ ] Verify `.mcp.json` exists at repo root (MCP registration)
 
 ## Start Claude Code
 
 - [ ] Load your credentials:
   ```powershell
-  . .\.env.local   # Windows PowerShell
+  . .\scripts\load-env.ps1   # Windows PowerShell
   ```
 - [ ] Start Claude Code:
   ```bash
@@ -148,7 +153,7 @@ Before pushing changes to the repo:
 
 | Item | Common Fix |
 |------|-----------|
-| MCP tools not in `/mcp --list` | Enable `.claude-plugin@local: true` in `~/.claude/settings.json` |
+| MCP tools not in `/mcp --list` | Enable BOTH `.claude-plugin@local: true` AND `my-first-plugin@local: true` in `~/.claude/settings.json` |
 | OAuth popup appears | Set `atlassian@claude-plugins-official: false` in `~/.claude/settings.json` |
 | 401 Unauthorized | PAT wrong or expired — get new one from Jira |
 | SSL/TLS error | Set `NODE_TLS_REJECT_UNAUTHORIZED=0` in `.env.local` |

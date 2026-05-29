@@ -47,8 +47,11 @@ Test case output (guided by skills/SKILL.md)
 - `ATLASSIAN_API_TOKEN` — from shell environment (not stored in any config file)
 
 **Plugin registration:**
-- `my-first-plugin/plugin.json` registers `mcp-atlassian` via `cmd atlassian-mcp`
+- `.mcp.json` at repo root is the primary MCP registration file (recommended pattern)
+- `my-first-plugin/plugin.json` also contains MCP registration (legacy)
+- `.claude-plugin/plugin.json` also contains MCP registration
 - `~/.claude/settings.json` disables `atlassian@claude-plugins-official` (cloud OAuth) to prevent conflicts
+- Both `.claude-plugin@local` and `my-first-plugin@local` must be enabled in `~/.claude/settings.json`
 
 ### Docker Connectivity Test (Operational)
 
@@ -85,8 +88,10 @@ Not used. The `plugin:atlassian:atlassian` (official Atlassian Cloud OAuth MCP) 
 
 | File | Purpose |
 |------|---------|
-| `my-first-plugin/plugin.json` | MCP server registration with env var references, no hardcoded secrets |
-| `my-first-plugin/setup-atlassian-mcp.js` | Patch script for Data Center compatibility |
-| `my-first-plugin/skills/SKILL.md` | QA test case generation rules and format |
+| `.mcp.json` | Primary MCP server registration (recommended pattern) |
+| `my-first-plugin/plugin.json` | Legacy MCP server registration (preserved) |
+| `.claude-plugin/plugin.json` | Plugin manifest with MCP registration |
+| `my-first-plugin/setup-atlassian-mcp.js` | Legacy patch script — `scripts/setup-atlassian-mcp.js` is active |
+| `my-first-plugin/skills/SKILL.md` | Legacy skill — `skills/jira-qa-testcase-generator/SKILL.md` is active |
 | `my-first-plugin/README.md` | Setup guide for the plugin |
 | `ai-testcases/jira-docker-test/` | Docker Jira connectivity validation |
