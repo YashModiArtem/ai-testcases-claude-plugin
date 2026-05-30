@@ -8,10 +8,11 @@
 
 | Integration | Status | Notes |
 |-------------|--------|-------|
-| **Jira QA Test Generation** | **ACTIVE** | Natural language command is verified working |
-| **Plugin Slash Commands** | **PENDING** | `/jira-qa-testcase-generator` still under validation |
+| **Jira QA Test Generation** | **ACTIVE** | Natural language and slash command both verified working |
+| **Plugin Slash Commands** | **ACTIVE** | `/jira-qa-testcase-generator` validated and working |
 | **Confluence Extraction** | **FUTURE** | Separate host — not connected |
-| **Figma UI QA** | **FUTURE** | No API key configured |
+| **Figma Design Review** | **ACTIVE** | `/figma-design-review` authenticated and working |
+| **Figma UI QA** | **ACTIVE** | `/figma-ui-qa` generating test cases |
 
 ---
 
@@ -61,18 +62,26 @@ All of these use the mcp-atlassian integration to fetch Jira data.
 
 ---
 
-## Planned Slash Commands (Pending Validation)
+## Active Slash Commands
 
-The following plugin slash commands are defined but **still pending final validation**:
+Both Jira and Figma slash commands are fully operational:
+
+### Jira Commands
 
 ```
 /jira-qa-testcase-generator BH-5474
-/qa-atlassian-plugin:jira-qa-testcase-generator BH-5474
 ```
 
-**Do not rely on these yet.** Use the natural language form above instead.
+### Figma Commands
 
-These are documented here for awareness. Once validated, they will be promoted to the verified list.
+```
+/figma-design-review https://www.figma.com/file/abc123/MyFile
+/figma-design-review abc123 123:456
+/figma-ui-qa https://www.figma.com/file/abc123/MyFile
+/figma-screenshot abc123 123:456
+```
+
+See the Figma Workflow section below for details.
 
 ---
 
@@ -221,9 +230,71 @@ All test case generation flows through the Jira MCP integration. Do not attempt 
 
 Jira and Confluence are on separate hosts. Do not ask for Confluence pages — the plugin will report that Confluence is not available.
 
-### Figma is not configured
+### Figma is Active
 
-No Figma API key is set up. The Figma skill and commands are placeholders.
+Figma design review and UI QA test generation are working. See the Figma Workflow section below.
+
+---
+
+## Figma Workflow
+
+Use Figma commands to analyze designs and generate UI QA test cases. No Jira ticket is required.
+
+### Step 1 — Open Figma design
+
+Navigate to the Figma design in your browser. Copy the file URL.
+
+### Step 2 — Review the design
+
+```
+/figma-design-review https://www.figma.com/file/abc123/MyFile
+```
+
+This fetches the design structure and provides:
+- Layout analysis (frames, sections, sidebar, content areas)
+- Component inventory (buttons, tables, inputs, dropdowns)
+- Visual design observations (spacing, alignment, hierarchy)
+- Recommendations for development and QA
+
+### Step 3 — Generate UI QA test cases
+
+```
+/figma-ui-qa https://www.figma.com/file/abc123/MyFile
+```
+
+This generates structured test cases covering:
+- **Positive** — All interactive elements respond to expected interactions
+- **Negative** — Empty states, invalid inputs, boundary values
+- **Edge** — Long text overflow, maximum item counts, scroll behavior
+- **UI/Layout** — Element visibility, alignment, spacing, z-order
+- **Accessibility** — Color contrast, touch targets, keyboard nav
+- **Responsive** — Frame size changes, resizing behavior
+
+### Step 4 — (Optional) Screenshot a specific frame
+
+```
+/figma-screenshot abc123 123:456 my-frame.png
+```
+
+### Input Formats
+
+All Figma commands accept:
+- Full URL: `https://www.figma.com/file/abc123/MyFile?node-id=123:456`
+- File key only: `abc123` (defaults to top-level page)
+- File key + node ID: `abc123 123:456`
+
+### Prerequisites
+
+Figma commands require Figma MCP authentication. If you see an OAuth prompt, open the authorization URL in your browser once. See `docs/FIGMA_MCP_SETUP.md` for full setup instructions.
+
+### Jira vs. Figma Test Generation
+
+| | Jira | Figma |
+|--|------|-------|
+| **Input** | Jira issue key | Figma file URL/key |
+| **Output** | Functional/requirements test cases | UI/visual test cases |
+| **Covers** | Business logic, validation, workflows | Layout, interactions, accessibility |
+| **When to use** | You have a Jira ticket with requirements | You have a Figma design to build from |
 
 ---
 
@@ -246,14 +317,15 @@ Full troubleshooting in `docs/JIRA_MCP_SETUP.md`.
 
 ```
 repo-root/
-├── skills/
-│   ├── jira-qa-testcase-generator/     # ACTIVE
-│   ├── confluence-extraction/           # FUTURE
-│   └── figma-ui-qa/                   # FUTURE
-├── commands/
-│   ├── jira-qa-testcase-generator.md   # PENDING validation
-│   ├── figma-design-review.md          # FUTURE
-│   └── figma-screenshot.md             # FUTURE
+├── .claude/
+│   ├── skills/
+│   │   ├── jira-qa-testcase-generator/  # ACTIVE
+│   │   ├── figma-ui-qa/               # ACTIVE
+│   │   └── confluence-extraction/       # FUTURE
+│   └── commands/
+│       ├── jira-qa-testcase-generator.md   # ACTIVE
+│       ├── figma-design-review.md          # ACTIVE
+│       └── figma-screenshot.md             # ACTIVE
 ├── scripts/
 │   ├── setup-atlassian-mcp.js
 │   ├── load-env.ps1
@@ -264,6 +336,7 @@ repo-root/
 │   ├── JIRA_MCP_SETUP.md
 │   ├── CREDENTIALS_SETUP.md
 │   ├── INSTALLATION_CHECKLIST.md
+│   ├── FIGMA_MCP_SETUP.md            # Figma setup
 │   ├── FUTURE_INTEGRATIONS.md
 │   ├── KNOWN_ISSUES.md
 │   └── legacy/
@@ -280,15 +353,19 @@ repo-root/
 
 | File | Purpose |
 |------|---------|
-| `.claude/skills/jira-qa-testcase-generator/SKILL.md` | Test case generation rules |
-| `.claude/commands/jira-qa-testcase-generator.md` | Slash command definition |
+| `.claude/skills/jira-qa-testcase-generator/SKILL.md` | Jira test case generation rules |
+| `.claude/skills/figma-ui-qa/SKILL.md` | Figma UI QA test case generation |
+| `.claude/commands/jira-qa-testcase-generator.md` | Jira slash command |
+| `.claude/commands/figma-design-review.md` | Figma design review command |
+| `.claude/commands/figma-screenshot.md` | Figma screenshot command |
 | `.mcp.json` | Jira MCP server registration |
 | `.claude-plugin/plugin.json` | Plugin manifest |
 | `scripts/setup-atlassian-mcp.js` | Jira Data Center compatibility patch |
 | `scripts/load-env.ps1` | Load credentials from .env.local |
 | `.env.example` | Credential template |
 | `.env.local` | Your credentials (gitignored) |
-| `docs/KNOWN_ISSUES.md` | Current known issues and pending items |
-| `docs/JIRA_MCP_SETUP.md` | Full MCP setup and troubleshooting |
-| `docs/CREDENTIALS_SETUP.md` | How to create and store PAT |
-| `docs/FUTURE_INTEGRATIONS.md` | Roadmap for Confluence and Figma |
+| `docs/KNOWN_ISSUES.md` | Current known issues |
+| `docs/JIRA_MCP_SETUP.md` | Jira MCP setup and troubleshooting |
+| `docs/FIGMA_MCP_SETUP.md` | Figma MCP setup |
+| `docs/CREDENTIALS_SETUP.md` | How to create and store PATs |
+| `docs/FUTURE_INTEGRATIONS.md` | Roadmap |

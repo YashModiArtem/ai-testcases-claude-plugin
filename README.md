@@ -1,20 +1,28 @@
 # AI TestCases — BMC HMIS QA Plugin
 
-**Purpose:** Generate structured test cases from Jira tickets using Claude Code and the Atlassian MCP integration.
+**Purpose:** Generate structured test cases from Jira tickets and Figma designs using Claude Code and the Atlassian MCP integration.
 
 ---
 
 ## What This Does
 
+### Jira Workflow
 1. **Fetches** a Jira ticket via `jira_get_issue` — title, description, labels, assignee, linked issues, changelog
 2. **Finds** related issues via `jira_search_issues`
 3. **Generates** structured test cases: positive, negative, edge, regression, UI, accessibility, state transitions
+
+### Figma Workflow
+1. **Fetches** a Figma design via `get_metadata` / `get_design_context` — frames, components, layout, typography, spacing
+2. **Analyzes** design elements — visual hierarchy, interactive components, data tables, form controls
+3. **Generates** UI QA test cases: positive, negative, edge, UI/layout, accessibility, responsive
 
 Output per test case: ID, title, preconditions, steps, expected result, priority, type, notes.
 
 ---
 
-## Active Workflow
+## Active Workflows
+
+### Jira — Requirements-Based Test Generation
 
 ```
 "Generate test cases for BH-5474"
@@ -27,6 +35,21 @@ Jira Data Center REST API v2 (Bearer / PAT auth)
        │
        ▼
 Structured test cases written to BH-5474_TestCases.md
+```
+
+### Figma — Design-Based UI QA
+
+```
+"/figma-ui-qa https://figma.com/file/abc123/MyFile"
+       │
+       ▼
+Claude Code fetches design via Figma MCP (mcp__plugin_figma_figma__)
+       │
+       ▼
+Design metadata (frames, components, layout, typography)
+       │
+       ▼
+UI QA test cases: positive, negative, edge, layout, accessibility, responsive
 ```
 
 ---
@@ -55,6 +78,7 @@ repo-root/
 │   ├── CREDENTIALS_SETUP.md           # PAT setup
 │   ├── INSTALLATION_CHECKLIST.md       # Pre-push validation
 │   ├── FUTURE_INTEGRATIONS.md         # Roadmap
+│   ├── FIGMA_MCP_SETUP.md             # Figma setup (Phase 1)
 │   ├── KNOWN_ISSUES.md                # Current known issues
 │   └── legacy/                        # Archived artifacts
 ├── .claude/                            # Project settings (safe to commit)
@@ -227,25 +251,31 @@ Find all issues related to BH-5532
 
 ### Slash Command
 
-The `/jira-qa-testcase-generator` slash command is defined in `.claude/commands/`:
-
 ```
 /jira-qa-testcase-generator BH-5474
 ```
 
 Both natural language and slash command are supported.
 
+### Figma Usage
+
+```powershell
+# Design review — analyze layout, components, typography
+/figma-design-review https://www.figma.com/file/abc123/MyFile
+
+# Design review with specific frame
+/figma-design-review abc123 123:456
+
+# Generate UI QA test cases from a Figma design
+/figma-ui-qa https://www.figma.com/file/abc123/MyFile
+
+# Screenshot a frame
+/figma-screenshot abc123 123:456
+```
+
+Figma commands work with either a full URL or a file key. Node IDs are optional — if omitted, the top-level page is shown.
+
 ---
-
-## Known Pending Issue: Plugin Slash Command Invocation
-
-> **Updated:** Slash commands are now defined in `.claude/commands/`. The Jira command is active.
-
-Both invocation forms are available:
-- Natural language: `Generate test cases for BH-5474` — verified working
-- Slash command: `/jira-qa-testcase-generator BH-5474` — defined in `.claude/commands/jira-qa-testcase-generator.md`
-
-For full details, see `docs/KNOWN_ISSUES.md`.
 
 ---
 
@@ -258,7 +288,7 @@ For full details, see `docs/KNOWN_ISSUES.md`.
 | SSL/TLS error | Corporate CA not trusted | `NODE_TLS_REJECT_UNAUTHORIZED=0` is already set |
 | `jira.artem.internal not found` | VPN disconnected | Connect to VPN |
 | OAuth popup appears | Cloud plugin enabled | Set `atlassian@claude-plugins-official: false` in `~/.claude/settings.json` |
-| Figma auth warning | Expected | Ignore — Figma is a future integration |
+| Figma OAuth prompt | First-time setup | Open URL in browser and authorize once |
 | Skill loads but Jira fails | MCP not running | Run `/mcp --list` and confirm Jira tools appear |
 
 Full troubleshooting in `docs/JIRA_MCP_SETUP.md`.
@@ -299,16 +329,27 @@ Full troubleshooting in `docs/JIRA_MCP_SETUP.md`.
 
 ---
 
-## Status Overview
+## Feature Matrix
+
+| Feature | Command | Input | Output |
+|---------|---------|-------|--------|
+| Jira QA Test Cases | `/jira-qa-testcase-generator BH-XXXX` or `Generate test cases for BH-XXXX` | Jira issue key | Structured test cases (`.md` file) |
+| Figma Design Review | `/figma-design-review <url>` | Figma file URL or key | Layout analysis, component inventory |
+| Figma UI QA Test Cases | `/figma-ui-qa <url>` | Figma file URL or key | UI test cases (positive, negative, edge, etc.) |
+| Confluence Extraction | — | — | FUTURE |
+
+
 
 | Component | Status |
 |-----------|--------|
 | Jira Data Center MCP | **ACTIVE** |
 | PAT Authentication | **ACTIVE** |
 | Natural language test generation | **ACTIVE** (verified) |
-| Plugin slash commands | **PENDING** |
+| `/jira-qa-testcase-generator` command | **ACTIVE** |
+| Figma MCP | **ACTIVE** (authenticated) |
+| `/figma-design-review` command | **ACTIVE** |
+| `/figma-ui-qa` command | **ACTIVE** |
 | Confluence integration | FUTURE / partial |
-| Figma integration | FUTURE / placeholder |
 
 ---
 
@@ -317,11 +358,14 @@ Full troubleshooting in `docs/JIRA_MCP_SETUP.md`.
 | | |
 |--|--|
 | **Jira type** | Internal Jira Data Center |
-| **Auth** | PAT (Personal Access Token) with Bearer header |
-| **API** | Jira REST API v2 (patched from v3) |
-| **MCP registration** | `.mcp.json` at repo root |
-| **OAuth** | Not used — `atlassian@claude-plugins-official` is disabled |
+| **Jira auth** | PAT (Personal Access Token) with Bearer header |
+| **Jira API** | Jira REST API v2 (patched from v3) |
+| **Jira MCP registration** | `.mcp.json` at repo root |
+| **Jira OAuth** | Not used — `atlassian@claude-plugins-official` is disabled |
 | **Confluence** | Separate host — not connected |
-| **Figma** | No API key — future placeholder |
+| **Figma type** | External cloud service |
+| **Figma auth** | API key (`FIGMA_API_KEY`) or OAuth |
+| **Figma MCP** | `figma@claude-plugins-official` (globally enabled) |
+| **Independence** | Jira and Figma are completely independent — one cannot break the other |
 
-For full details, see `docs/JIRA_MCP_SETUP.md`.
+For full details, see `docs/JIRA_MCP_SETUP.md` and `docs/FIGMA_MCP_SETUP.md`.

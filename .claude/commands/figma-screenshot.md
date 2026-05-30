@@ -1,32 +1,45 @@
 ---
-description: Take a screenshot of a Figma frame or page
+description: Take a screenshot of a Figma frame or page and save it locally
 allowed-tools:
   - "mcp__plugin_figma_figma__*"
+  - "mcp__plugin_figma_Framelink_MCP_for_Figma__get_figma_data"
+  - "mcp__plugin_figma_Framelink_MCP_for_Figma__download_figma_images"
 ---
 
-# /figma-screenshot (FUTURE — requires Figma API key)
+# /figma-screenshot
 
-> **Status:** PLACEHOLDER / NOT ACTIVE
-> No Figma API key has been configured. This command will not function until a `FIGMA_API_KEY` is set.
+> **Requires:** `FIGMA_API_KEY` in `.env.local` (see `docs/FIGMA_MCP_SETUP.md`)
 
-When activated, this command will capture a screenshot of a Figma design and save it locally.
+Capture a screenshot of a Figma frame or page and save it to the project directory.
 
-## Steps (planned)
+## Usage
 
-1. **Get details from the user**:
-   - Figma file key (from the file URL)
-   - Node ID of the frame/page to screenshot
-   - Output filename (default: `figma-screenshot.png`)
+```
+/figma-screenshot <file-url-or-key> [node-id] [output-filename]
+```
 
-2. **Capture the screenshot** — Use the Figma MCP screenshot tool to download the image.
+Examples:
+```
+/figma-screenshot https://www.figma.com/file/abc123/MyFile?node-id=123:456
+/figma-screenshot abc123 123:456 my-frame.png
+/figma-screenshot abc123 123:456
+```
 
-3. **Save the file** — Save it to the current working directory.
+## Arguments
 
-4. **Confirm** — Tell the user the screenshot was saved and where.
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `file-url-or-key` | Yes | Figma file URL or file key |
+| `node-id` | Yes | Node ID of the frame/page to screenshot (format: `123:456`) |
+| `output-filename` | No | Output filename (default: `figma-screenshot.png`) |
 
-## To Activate
+## Steps
 
-1. Obtain a Figma API key from `figma.com/developers`
-2. Set `FIGMA_API_KEY` in your environment
-3. Update `plugin.json` to include the key
-4. Test with a real Figma file and node ID
+1. **Parse input** — Extract file key and node ID from arguments
+2. **Download image** — Use `download_figma_images` to fetch the frame as PNG/SVG
+3. **Save** — Save to project root (images directory if present)
+4. **Confirm** — Report the saved file path to the user
+
+## Error Handling
+
+If Figma auth is missing or invalid, the command exits gracefully with setup instructions. Jira functionality is unaffected.

@@ -10,11 +10,22 @@
       "name": "jira-qa-testcase-generator",
       "path": ".claude/skills/jira-qa-testcase-generator",
       "description": "Generate QA test cases from Jira Data Center issues using local patched Atlassian MCP"
+    },
+    {
+      "name": "figma-ui-qa",
+      "path": ".claude/skills/figma-ui-qa",
+      "description": "Generate UI QA test cases from Figma designs using Figma MCP (requires FIGMA_API_KEY)"
     }
   ],
   "commands": {
     "jira-qa-testcase-generator": {
       "description": "Generate QA test cases from a Jira Data Center issue key or URL"
+    },
+    "figma-design-review": {
+      "description": "Review a Figma design — layout, components, styles, and design patterns"
+    },
+    "figma-screenshot": {
+      "description": "Capture and save a Figma frame as a local image file"
     }
   }
 }

@@ -6,13 +6,12 @@
 
 ## Overview
 
-The plugin needs one credential to work:
-
 | Credential | Required | Where to Store |
 |-----------|----------|---------------|
 | Jira PAT | **Yes** | `.env.local` (never commit) |
+| Figma API Key | Optional | `.env.local` (never commit) |
 
-Everything else (domain, email, TLS flag) is already in project settings.
+Jira credentials are required. Figma credentials are optional but enable design-based QA. Both go in `.env.local`.
 
 ---
 
@@ -164,16 +163,44 @@ The PAT is **never written to disk** by the plugin. It is only in memory as an e
 
 ---
 
-## Confluence / Figma Credentials (Future)
+## Figma Credentials
 
-These are not needed today but will be when those integrations are enabled:
+Figma uses an API key (`FIGMA_API_KEY`). Add it to your `.env.local`:
+
+```
+FIGMA_API_KEY=your-figma-pat
+```
+
+### How to Generate a Figma API Key
+
+1. Go to [figma.com/developers](https://figma.com/developers)
+2. Sign in with your Figma account
+3. Navigate to **Account Settings** → **Personal Access Tokens**
+4. Click **Create a new token**
+5. Name it: `Claude Code QA Plugin`
+6. Set expiry as needed
+7. Copy the token immediately — it is shown only once
+8. Grant access to the files you need (or full account access)
+
+### Important
+
+- The PAT belongs to the Figma account that created it
+- That account **must have access** to the target design file
+- `.env.local` must **never be committed** to Git
+- Unlike Jira, Figma is an external service — no VPN needed
+
+See `docs/FIGMA_MCP_SETUP.md` for the full setup flow including OAuth fallback.
+
+---
+
+## Confluence Credentials (Future)
 
 | Integration | Credential | Status |
 |------------|-----------|--------|
 | Confluence | Confluence PAT | **Future** — separate host not yet connected |
-| Figma | FIGMA_API_KEY | **Future** — no API key obtained yet |
+| Figma | `FIGMA_API_KEY` | **Active** — add to `.env.local` |
 
-When they become relevant, follow the same pattern: store in `.env.local`, never commit.
+When Confluence becomes relevant, follow the same pattern: store in `.env.local`, never commit.
 
 ---
 
