@@ -19,25 +19,28 @@ Commands are registered in:
 
 ---
 
-## Expected: Figma OAuth Auth Warning
+## Expected: Figma OAuth Auth Prompt (First-Time Setup)
 
-### Status: EXPECTED — NOT AN ERROR
+### Status: EXPECTED ON FIRST USE — NOT AN ERROR
 
-When Claude Code starts, you may see a Figma OAuth authentication warning or prompt.
+On first-time setup, the Figma MCP may prompt for OAuth authorization.
 
 ### Cause
 
-- Figma MCP tools (`mcp__plugin_figma_figma__*`) come from `figma@claude-plugins-official` (globally enabled)
-- Figma is not configured with an API key in this project
-- The OAuth warning is triggered by the global Figma plugin looking for credentials
-
-### Impact on Jira
-
-**None.** The Figma OAuth warning does not affect Jira MCP functionality. Jira test case generation works independently.
+- Figma MCP via `figma@claude-plugins-official` uses OAuth
+- The first authorization requires a one-time browser flow
 
 ### Resolution
 
-No action needed. This is expected behavior. When Figma integration is enabled in the future, an API key will be configured and the warning will be resolved.
+1. Open the authorization URL from the prompt in your browser
+2. Complete the Figma authorization
+3. Return to Claude Code — Figma tools will be available
+
+This only needs to be done once per machine. After authorization, Figma tools work automatically.
+
+### Impact on Jira
+
+**None.** Jira MCP is completely independent.
 
 ---
 
@@ -92,12 +95,43 @@ This is acceptable for an internal corporate Jira instance. For a production set
 
 ---
 
+## Figma — Authenticated and Working
+
+The Figma OAuth flow is complete. All three Figma commands are active:
+
+- `/figma-design-review` — design analysis
+- `/figma-ui-qa` — UI test case generation
+- `/figma-screenshot` — frame capture
+
+If Figma tools fail to load, see `docs/FIGMA_MCP_SETUP.md` for troubleshooting.
+
+### Common Figma Errors
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| OAuth prompt on startup | Expected first-time flow | Open URL in browser, authorize once |
+| "File not found" | Wrong file key or no access | Verify URL, ask owner to share |
+| "Invalid API key" | Token wrong or expired | Generate new at figma.com/developers |
+| Rate limit hit | Too many API calls | Wait, reduce requests |
+
+### Design Review Quality
+
+The quality of Figma design reviews depends on the designer's use of Figma features:
+- Named layers and frames → better component identification
+- Component instances → reusable component inventory
+- Text styles → typography analysis
+- Color styles → palette extraction
+- Unnamed/locked layers → reduced detail
+
+---
+
 ## Summary
 
 | Issue | Status | Affects Jira? |
 |-------|--------|---------------|
 | Slash command invocation | RESOLVED | No — both natural language and slash command work |
-| Figma OAuth warning | EXPECTED | No |
+| Figma OAuth | RESOLVED | No |
 | Direct HTTPS vs MCP | Required workflow | No — MCP is the correct path |
 | Confluence separate host | Known limitation | No |
 | SSL/TLS bypass | Accepted | No |
+| Figma rate limits | Expected | No — retry later |

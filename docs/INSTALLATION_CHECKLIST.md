@@ -180,6 +180,25 @@ If you need Docker:
 
 ---
 
+## Optional: Figma Setup
+
+These steps are optional — they enable Figma design review and UI QA test generation.
+
+- [ ] Create a Figma Personal Access Token at [figma.com/developers](https://figma.com/developers) → Account Settings → Personal Access Tokens
+- [ ] Add `FIGMA_API_KEY=your-token` to `.env.local`
+- [ ] Load environment: `. .\scripts\load-env.ps1`
+- [ ] Restart Claude Code
+- [ ] If OAuth prompt appears, open the authorization URL in your browser
+- [ ] Verify Figma MCP: `/mcp --list` should show `figma` or `figma-framelink-mcp`
+- [ ] Test design review:
+  ```
+  /figma-design-review https://www.figma.com/file/abc123/MyFile
+  ```
+
+See `docs/FIGMA_MCP_SETUP.md` for full instructions.
+
+---
+
 ## Troubleshooting Failed Items
 
 | Item | Common Fix |
