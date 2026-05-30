@@ -19,7 +19,7 @@ When implemented, this integration will:
 
 ## Figma Skill
 
-See `.claude-plugin/skills/figma-ui-qa/SKILL.md` for the skill definition.
+See `.claude/skills/figma-ui-qa/SKILL.md` for the skill definition.
 
 ## Commands
 

@@ -64,7 +64,7 @@ If your Jira and Confluence instances are already on the same Data Center deploy
 
 ### Skill Location
 
-See `skills/confluence-extraction/SKILL.md` for the placeholder skill.
+See `.claude/skills/confluence-extraction/SKILL.md` for the placeholder skill.
 
 ---
 

@@ -35,14 +35,15 @@ Structured test cases written to BH-5474_TestCases.md
 
 ```
 repo-root/
-├── skills/                              # Active skills
-│   ├── jira-qa-testcase-generator/     # ACTIVE — Jira test case generation
-│   ├── confluence-extraction/           # FUTURE — partial, not connected
-│   └── figma-ui-qa/                    # FUTURE — placeholder, no API key
-├── commands/                            # Slash commands
-│   ├── jira-qa-testcase-generator.md   # /jira-qa-testcase-generator (pending validation)
-│   ├── figma-design-review.md          # FUTURE — placeholder
-│   └── figma-screenshot.md             # FUTURE — placeholder
+├── .claude/                            # Active skills + commands
+│   ├── skills/
+│   │   ├── jira-qa-testcase-generator/ # ACTIVE — Jira test case generation
+│   │   ├── confluence-extraction/      # FUTURE — placeholder, not connected
+│   │   └── figma-ui-qa/               # FUTURE — placeholder, no API key
+│   └── commands/
+│       ├── jira-qa-testcase-generator.md   # ACTIVE — /jira-qa-testcase-generator
+│       ├── figma-design-review.md           # FUTURE — placeholder
+│       └── figma-screenshot.md              # FUTURE — placeholder
 ├── scripts/
 │   ├── setup-atlassian-mcp.js          # Data Center patch (run once per install)
 │   ├── load-env.ps1                    # Load .env.local into PowerShell
@@ -67,10 +68,40 @@ repo-root/
 
 ---
 
-## QA Quick Start
+## Software Requirements
 
-### 1. Clone and open
+### Required Software
 
+| Component | Required | Purpose |
+|-----------|----------|---------|
+| Git | Yes | Clone repo |
+| VS Code | Yes | Open project |
+| Claude Code | Yes | Run skills and commands |
+| Node.js | Yes | MCP tooling |
+| Jira PAT | Yes | Jira access |
+| VPN / Internal Network | Yes | Reach Jira Data Center |
+| Docker Desktop | **No** | Optional troubleshooting |
+
+### Docker Is NOT Required For
+
+Most QA users do **not** need Docker installed. Docker is only used for:
+- MCP troubleshooting and diagnostics
+- Running `scripts/jira-docker-test/jira-test.js`
+- Advanced validation (when MCP itself has issues)
+
+Docker is **NOT** required for:
+- Daily QA test case generation
+- Jira skill usage (`/jira-qa-testcase-generator`)
+- Natural language commands (`Generate test cases for BH-5474`)
+- Any normal workflow
+
+> **Most QA users do not need Docker installed.**
+
+---
+
+## Quick Start
+
+### 1. Clone repo
 ```powershell
 git clone <repo-url>
 cd "AI TestCases"
@@ -78,34 +109,33 @@ code .
 ```
 
 ### 2. Create credentials
-
 ```powershell
 copy .env.example .env.local
 notepad .env.local
 ```
-
 Fill in your Jira PAT (see `docs/CREDENTIALS_SETUP.md`).
 
-### 3. Start
-
+### 3. Load credentials
 ```powershell
 . .\scripts\load-env.ps1
+```
+
+### 4. Start Claude Code
+```powershell
 claude
 ```
 
-### 4. Verify MCP
-
+### 5. Verify MCP
 ```
 /mcp --list
 ```
+Expected: `mcp-atlassian Connected` with Jira tools.
 
-Expected: `mcp-atlassian Connected` with Jira tools like `jira_get_issue`, `jira_search_issues`, etc.
-
-### 5. Generate test cases
-
+### 6. Generate test cases
 ```
 Generate test cases for BH-5474
 ```
+Output file: `BH-5474_TestCases.md`
 
 That's the verified working command. See `docs/QA_TEAM_USAGE.md` for full details.
 
@@ -137,6 +167,7 @@ See `docs/CREDENTIALS_SETUP.md` for full instructions.
 **API:** Jira REST API v2 (patched from v3)
 **MCP package:** `@xuandev/atlassian-mcp` (globally installed, locally patched)
 **MCP registration:** `.mcp.json` at repo root
+**Docker:** Not required for normal usage — see `docs/JIRA_MCP_SETUP.md` for diagnostics
 
 ### Required Environment Variables
 
@@ -194,28 +225,27 @@ Generate regression suite for BH-5532
 Find all issues related to BH-5532
 ```
 
-### Planned Slash Commands (Pending Validation)
+### Slash Command
 
-The following plugin slash commands are defined but still pending final validation:
+The `/jira-qa-testcase-generator` slash command is defined in `.claude/commands/`:
 
 ```
 /jira-qa-testcase-generator BH-5474
-/qa-atlassian-plugin:jira-qa-testcase-generator BH-5474
 ```
 
-Do **not** rely on these yet. Use the natural language form above.
+Both natural language and slash command are supported.
 
 ---
 
 ## Known Pending Issue: Plugin Slash Command Invocation
 
-The plugin slash command invocation is **not yet fully resolved**. Specifically:
+> **Updated:** Slash commands are now defined in `.claude/commands/`. The Jira command is active.
 
-- `/jira-qa-testcase-generator` and `/qa-atlassian-plugin:jira-qa-testcase-generator` may not invoke correctly
-- Natural language generation (`Generate test cases for BH-5474`) is **verified and supported**
-- This is documented in `docs/KNOWN_ISSUES.md`
+Both invocation forms are available:
+- Natural language: `Generate test cases for BH-5474` — verified working
+- Slash command: `/jira-qa-testcase-generator BH-5474` — defined in `.claude/commands/jira-qa-testcase-generator.md`
 
-Until resolved, always use the natural language form.
+For full details, see `docs/KNOWN_ISSUES.md`.
 
 ---
 

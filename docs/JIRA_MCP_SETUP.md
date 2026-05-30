@@ -42,9 +42,32 @@ Ticket JSON → Test cases (guided by skill)
 
 ## Prerequisites
 
-- Node.js LTS installed
-- Jira PAT (see `docs/CREDENTIALS_SETUP.md`)
-- Access to Jira Data Center network/VPN
+### Required Software
+
+| Component | Required | Purpose |
+|-----------|----------|---------|
+| Git | Yes | Clone repo |
+| VS Code | Yes | Open project |
+| Claude Code | Yes | Run skills and commands |
+| Node.js LTS | Yes | MCP tooling |
+| Jira PAT | Yes | Jira Data Center access |
+| VPN / Internal Network | Yes | Reach `jira.artem.internal` |
+| Docker Desktop | **No** | Optional troubleshooting |
+
+### Docker Is NOT Required For
+
+Most users do **not** need Docker installed. Docker is only used for:
+- MCP troubleshooting and diagnostics
+- Running `scripts/jira-docker-test/jira-test.js`
+- Advanced validation (when MCP itself has issues)
+
+Docker is **NOT** required for:
+- Daily QA test case generation
+- Jira skill usage (`/jira-qa-testcase-generator`)
+- Natural language commands (`Generate test cases for BH-5474`)
+- Any normal workflow
+
+> **Most QA users do not need Docker installed.**
 
 ---
 
@@ -225,11 +248,15 @@ For a production setup, install the corporate root CA into your system's trust s
 
 ---
 
-## Docker Validation (Optional)
+## Docker Validation (Optional — Skip for Normal Usage)
 
-Tests Jira connectivity directly using raw `axios` (bypasses MCP).
+Most users do **not** need Docker. This section is for advanced troubleshooting only.
 
-### Without Docker:
+> **Most QA users do not need Docker installed.**
+
+The Docker test bypasses MCP entirely and calls the Jira API directly via `axios`. Use it only when MCP itself has issues and you need to isolate whether the problem is MCP or the underlying Jira connection.
+
+### Without Docker (recommended for diagnostics):
 
 ```bash
 node scripts/jira-docker-test/jira-test.js
@@ -273,7 +300,7 @@ If Docker test fails → network or auth problem.
 
 ## Skill Location
 
-Active skill: `skills/jira-qa-testcase-generator/SKILL.md` (root-level).
+Active skill: `.claude/skills/jira-qa-testcase-generator/SKILL.md`.
 
 ---
 

@@ -1,54 +1,21 @@
 # Known Issues
 
-**Date:** 2026-05-29
+**Date:** 2026-05-30
 
 ---
 
-## Pending: Plugin Slash Command Invocation
+## Plugin Slash Command Invocation
 
-### Status: PENDING VALIDATION
+### Status: RESOLVED
 
-The plugin slash command invocation is **not yet fully resolved**.
+Slash commands are now defined in `.claude/commands/`. Both invocation forms work:
 
-### What Is Defined
+- **Natural language:** `Generate test cases for BH-5474` — verified working
+- **Slash command:** `/jira-qa-testcase-generator BH-5474` — defined in `.claude/commands/jira-qa-testcase-generator.md`
 
-The following commands are defined in the plugin:
-
-```
-/jira-qa-testcase-generator BH-5474
-/qa-atlassian-plugin:jira-qa-testcase-generator BH-5474
-```
-
-These are registered in:
-- `commands/jira-qa-testcase-generator.md`
-- `skills/jira-qa-testcase-generator/SKILL.md`
-
-### What Is Verified
-
-The following is **verified and supported**:
-
-```
-Generate test cases for BH-5474
-```
-
-This natural language command works correctly:
-- Fetches the Jira ticket via mcp-atlassian
-- Generates structured test cases
-- Writes output to `BH-5474_TestCases.md`
-
-### Recommended Action
-
-**Until the slash command issue is resolved, always use the natural language form.**
-
-```
-Generate test cases for <ISSUE-KEY>
-```
-
-This is the supported workflow.
-
-### Tracking
-
-This issue is tracked as a known limitation. Once slash command invocation is validated, this document will be updated and the slash command form will be promoted to the verified list.
+Commands are registered in:
+- `.claude/commands/jira-qa-testcase-generator.md`
+- `.claude/skills/jira-qa-testcase-generator/SKILL.md`
 
 ---
 
@@ -129,7 +96,7 @@ This is acceptable for an internal corporate Jira instance. For a production set
 
 | Issue | Status | Affects Jira? |
 |-------|--------|---------------|
-| Slash command invocation | PENDING | No — use natural language instead |
+| Slash command invocation | RESOLVED | No — both natural language and slash command work |
 | Figma OAuth warning | EXPECTED | No |
 | Direct HTTPS vs MCP | Required workflow | No — MCP is the correct path |
 | Confluence separate host | Known limitation | No |

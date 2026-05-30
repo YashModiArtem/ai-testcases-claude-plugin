@@ -16,7 +16,7 @@ Examples:
 
 1. Extract the Jira issue key from the command arguments.
 2. Load and follow the instructions from:
-   `skills/jira-qa-testcase-generator/SKILL.md`
+   `.claude/skills/jira-qa-testcase-generator/SKILL.md`
 3. Use Jira MCP tools from the local patched Atlassian MCP server.
 4. Fetch the Jira issue using `jira_get_issue`.
 5. Generate structured QA test cases using the skill output format.

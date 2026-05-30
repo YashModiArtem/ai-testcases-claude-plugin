@@ -6,13 +6,36 @@ Use this checklist for new team member setup and pre-push validation.
 
 ## Pre-Clone Prerequisites
 
-- [ ] **Git** installed (`git --version`)
-- [ ] **VS Code** installed (`code --version`)
-- [ ] **Node.js LTS** installed (`node --version` and `npm --version`)
-- [ ] **Claude Code** installed (`claude --version`)
-- [ ] **Docker Desktop** installed (optional — only for Docker-based Jira connectivity test)
-- [ ] **VPN** connected / network access to Jira Data Center
-- [ ] **Jira PAT** created (see `docs/CREDENTIALS_SETUP.md`)
+### Required Software
+
+| Component | Required | Purpose |
+|-----------|----------|---------|
+| Git | Yes | Clone repo |
+| VS Code | Yes | Open project |
+| Claude Code | Yes | Run skills and commands |
+| Node.js | Yes | MCP tooling |
+| Jira PAT | Yes | Jira Data Center access |
+| VPN / Internal Network | Yes | Reach `jira.artem.internal` |
+| Docker Desktop | **No** | Optional troubleshooting only |
+
+### Optional Software
+
+| Component | Purpose |
+|-----------|---------|
+| Docker Desktop | Running `scripts/jira-docker-test/` for connectivity diagnostics |
+
+### Docker Is NOT Required For
+
+Most QA users do **not** need Docker installed. Docker is only used for:
+- MCP troubleshooting and diagnostics
+- Running `scripts/jira-docker-test/jira-test.js`
+- Advanced validation (when MCP itself has issues)
+
+Docker is **NOT** required for:
+- Daily QA test case generation
+- Jira skill usage (`/jira-qa-testcase-generator`)
+- Natural language commands (`Generate test cases for BH-5474`)
+- Any normal workflow
 
 ---
 
@@ -129,7 +152,13 @@ Use this checklist for new team member setup and pre-push validation.
 
 ---
 
-## Docker Test (Optional)
+## Docker Test (Optional — Most Users Skip This)
+
+Most QA users do **not** need Docker installed. Only proceed if:
+- MCP is failing and you need advanced diagnostics
+- You are troubleshooting connectivity issues beyond normal PAT/VPN problems
+
+If you need Docker:
 
 - [ ] Build the Docker test image:
   ```bash
@@ -144,8 +173,10 @@ Use this checklist for new team member setup and pre-push validation.
     jira-test
   ```
 - [ ] Confirm: `Success!` with JSON response
-- [ ] If this succeeds but MCP fails: the MCP layer has an issue
-- [ ] If this fails: network or auth problem — check VPN, PAT, TLS settings
+- [ ] If Docker succeeds but MCP fails: the MCP layer has an issue
+- [ ] If Docker fails: network or auth problem — check VPN, PAT, TLS settings
+
+> **Note:** The Docker test bypasses MCP entirely and calls the Jira API directly. It is a diagnostic tool, not part of normal usage.
 
 ---
 

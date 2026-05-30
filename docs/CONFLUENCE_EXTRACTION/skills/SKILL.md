@@ -23,4 +23,4 @@ When implemented, this integration will:
 
 ## Confluence Skill
 
-See `.claude-plugin/skills/confluence-extraction/SKILL.md` for the skill definition.
+See `.claude/skills/confluence-extraction/SKILL.md` for the skill definition.

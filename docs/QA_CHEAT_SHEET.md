@@ -135,8 +135,8 @@ Every test case generation includes:
 | What | Where |
 |------|-------|
 | Generated test cases | `<ISSUE-KEY>_TestCases.md` |
-| Skills | `skills/jira-qa-testcase-generator/SKILL.md` |
-| Commands | `commands/jira-qa-testcase-generator.md` |
+| Skills | `.claude/skills/jira-qa-testcase-generator/SKILL.md` |
+| Commands | `.claude/commands/jira-qa-testcase-generator.md` |
 | Docs | `docs/*.md` |
 | MCP registration | `.mcp.json` |
 | Credentials | `.env.local` (gitignored) |

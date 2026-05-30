@@ -78,14 +78,34 @@ These are documented here for awareness. Once validated, they will be promoted t
 
 ## Prerequisites
 
-Before starting, you need:
+### Required Software
 
-1. **Jira PAT** — Create one at Jira → Profile → Personal Access Tokens. See `docs/CREDENTIALS_SETUP.md`.
-2. **Access to Jira Data Center** — VPN or internal network
-3. **Node.js LTS** — For running the MCP server
-4. **Claude Code** — Installed on your machine
+| Component | Required | Purpose |
+|-----------|----------|---------|
+| Git | Yes | Clone repo |
+| VS Code | Yes | Open project |
+| Claude Code | Yes | Run skills and commands |
+| Node.js LTS | Yes | MCP tooling |
+| Jira PAT | Yes | Jira Data Center access |
+| VPN / Internal Network | Yes | Reach `jira.artem.internal` |
+| Docker Desktop | **No** | Optional troubleshooting only |
 
-See `docs/INSTALLATION_CHECKLIST.md` for the full prerequisite checklist.
+### Docker Is NOT Required For
+
+Most QA users do **not** need Docker installed. Docker is only used for:
+- MCP troubleshooting and diagnostics
+- Running `scripts/jira-docker-test/jira-test.js`
+- Advanced validation (when MCP itself has issues)
+
+Docker is **NOT** required for:
+- Daily QA test case generation
+- Jira skill usage (`/jira-qa-testcase-generator`)
+- Natural language commands (`Generate test cases for BH-5474`)
+- Any normal workflow
+
+> **Most QA users do not need Docker installed.**
+
+For full setup instructions, see `docs/INSTALLATION_CHECKLIST.md`.
 
 ---
 
@@ -151,7 +171,7 @@ Look for: `mcp-atlassian Connected` and Jira tools like `jira_get_issue`, `jira_
 1. **Fetches Jira data** via `jira_get_issue` — title, description, labels, assignee, status, components, linked issues
 2. **Finds related issues** via `jira_search_issues` — JQL queries for linked or similar tickets
 3. **Reads changelog** via `jira_batch_get_changelogs` — recent changes for regression context
-4. **Generates test cases** following rules from `skills/jira-qa-testcase-generator/SKILL.md`
+4. **Generates test cases** following rules from `.claude/skills/jira-qa-testcase-generator/SKILL.md`
 
 ---
 
@@ -260,8 +280,8 @@ repo-root/
 
 | File | Purpose |
 |------|---------|
-| `skills/jira-qa-testcase-generator/SKILL.md` | Test case generation rules |
-| `commands/jira-qa-testcase-generator.md` | Slash command definition (pending validation) |
+| `.claude/skills/jira-qa-testcase-generator/SKILL.md` | Test case generation rules |
+| `.claude/commands/jira-qa-testcase-generator.md` | Slash command definition |
 | `.mcp.json` | Jira MCP server registration |
 | `.claude-plugin/plugin.json` | Plugin manifest |
 | `scripts/setup-atlassian-mcp.js` | Jira Data Center compatibility patch |
