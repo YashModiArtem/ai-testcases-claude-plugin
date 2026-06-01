@@ -10,6 +10,7 @@
 |-------------|--------|-------|
 | **Jira QA Test Generation** | **ACTIVE** | Natural language and slash command both verified working |
 | **Plugin Slash Commands** | **ACTIVE** | `/jira-qa-testcase-generator` validated and working |
+| **Unified QA Generator** | **ACTIVE** | `/qa-testcase-generator` with smart Jira/Figma routing |
 | **Confluence Extraction** | **FUTURE** | Separate host — not connected |
 | **Figma Design Review** | **ACTIVE** | `/figma-design-review` authenticated and working |
 | **Figma UI QA** | **ACTIVE** | `/figma-ui-qa` generating test cases |
@@ -64,7 +65,31 @@ All of these use the mcp-atlassian integration to fetch Jira data.
 
 ## Active Slash Commands
 
-Both Jira and Figma slash commands are fully operational:
+All slash commands are fully operational:
+
+### Unified QA Generator (Recommended)
+
+```
+/qa-testcase-generator BH-5474
+/qa-testcase-generator https://figma.com/design/abc123/MyFile?node-id=123:456
+/qa-testcase-generator BH-5474 https://figma.com/design/abc123/MyFile?node-id=123:456
+```
+
+**Smart routing:** detects whether input is a Jira key, Figma URL, or both, and fetches from the appropriate source(s).
+
+| Input Pattern | Path | Output |
+|---------------|------|--------|
+| Jira key only (`BH-5474`) | **Jira-only** | Functional, validation, regression, accessibility test cases from requirements |
+| Figma URL only (`https://figma.com/design/...`) | **Figma-only** | UI, interaction, validation, edge, accessibility test cases from design |
+| Both (`BH-5474 <url>`) | **Merge** | Unified test cases + Requirement Coverage Matrix + gap identification |
+
+**Merge path output includes:**
+- Requirement Coverage Matrix (maps each Jira requirement to Figma UI elements, marks gaps)
+- Functional, UI, Validation, Negative, Accessibility, Regression test cases
+- Open Questions table flagging ambiguities and missing requirements
+- Excel-ready tabular format (copy-paste into Excel or export to CSV/XLSX)
+
+Smart routing: detects Jira keys and Figma URLs, fetches from the right source(s), and generates unified test cases. When both are provided, builds a Requirement Merge Matrix.
 
 ### Jira Commands
 
@@ -289,12 +314,12 @@ Figma commands require Figma MCP authentication. If you see an OAuth prompt, ope
 
 ### Jira vs. Figma Test Generation
 
-| | Jira | Figma |
-|--|------|-------|
-| **Input** | Jira issue key | Figma file URL/key |
-| **Output** | Functional/requirements test cases | UI/visual test cases |
-| **Covers** | Business logic, validation, workflows | Layout, interactions, accessibility |
-| **When to use** | You have a Jira ticket with requirements | You have a Figma design to build from |
+| | Jira | Figma | Unified (`/qa-testcase-generator`) |
+|--|------|-------|-------|
+| **Input** | Jira issue key | Figma file URL/key | Jira key +/or Figma URL |
+| **Output** | Functional/requirements test cases | UI/visual test cases | Both, merged |
+| **Covers** | Business logic, validation, workflows | Layout, interactions, accessibility | Business logic + UI + gaps |
+| **When to use** | You have a Jira ticket with requirements | You have a Figma design to build from | You have both and want unified coverage |
 
 ---
 
@@ -321,11 +346,13 @@ repo-root/
 │   ├── skills/
 │   │   ├── jira-qa-testcase-generator/  # ACTIVE
 │   │   ├── figma-ui-qa/               # ACTIVE
+│   │   ├── qa-testcase-generator/    # ACTIVE — unified Jira+Figma
 │   │   └── confluence-extraction/       # FUTURE
 │   └── commands/
 │       ├── jira-qa-testcase-generator.md   # ACTIVE
 │       ├── figma-design-review.md          # ACTIVE
-│       └── figma-screenshot.md             # ACTIVE
+│       ├── figma-screenshot.md             # ACTIVE
+│       └── qa-testcase-generator.md        # ACTIVE — unified command
 ├── scripts/
 │   ├── setup-atlassian-mcp.js
 │   ├── load-env.ps1
@@ -355,9 +382,11 @@ repo-root/
 |------|---------|
 | `.claude/skills/jira-qa-testcase-generator/SKILL.md` | Jira test case generation rules |
 | `.claude/skills/figma-ui-qa/SKILL.md` | Figma UI QA test case generation |
+| `.claude/skills/qa-testcase-generator/SKILL.md` | Unified Jira+Figma test case generation |
 | `.claude/commands/jira-qa-testcase-generator.md` | Jira slash command |
 | `.claude/commands/figma-design-review.md` | Figma design review command |
 | `.claude/commands/figma-screenshot.md` | Figma screenshot command |
+| `.claude/commands/qa-testcase-generator.md` | Unified slash command |
 | `.mcp.json` | Jira MCP server registration |
 | `.claude-plugin/plugin.json` | Plugin manifest |
 | `scripts/setup-atlassian-mcp.js` | Jira Data Center compatibility patch |

@@ -19,24 +19,40 @@ Commands are registered in:
 
 ---
 
-## Expected: Figma OAuth Auth Prompt (First-Time Setup)
+## Figma MCP: Local `figma-developer-mcp` (Replaces OAuth Plugin)
 
-### Status: EXPECTED ON FIRST USE — NOT AN ERROR
+### Status: ACTIVE
 
-On first-time setup, the Figma MCP may prompt for OAuth authorization.
+The Figma OAuth plugin (`figma@claude-plugins-official`) has been **disabled** in `~/.claude/settings.json`. The local `figma-developer-mcp` server is now the active Figma MCP, registered via the project's `.mcp.json`.
 
-### Cause
+### Setup
 
-- Figma MCP via `figma@claude-plugins-official` uses OAuth
-- The first authorization requires a one-time browser flow
+- Package: `figma-developer-mcp@0.12.0` (installed globally via `npm install -g figma-developer-mcp`)
+- Registration: `.mcp.json` → `figma-developer-mcp` server entry
+- Credential: `FIGMA_API_KEY` in `~/.claude/settings.json` → `env.FIGMA_API_KEY`
+- Account: `frontend-dev2@artemhealthtech.com` (token owner)
 
-### Resolution
+### Why This Change
 
-1. Open the authorization URL from the prompt in your browser
-2. Complete the Figma authorization
-3. Return to Claude Code — Figma tools will be available
+- OAuth flow requires a one-time browser authorization per machine
+- Local PAT-based auth is simpler and more deterministic for CI / scripted use
+- Both paths use the same Figma REST API — output and tools are equivalent
 
-This only needs to be done once per machine. After authorization, Figma tools work automatically.
+### Verifying
+
+```
+/mcp --list
+```
+
+Expected: `figma-developer-mcp` listed and connected. If missing, ensure the OAuth plugin is set to `false` and the global npm package is installed.
+
+### Troubleshooting
+
+| Symptom | Fix |
+|---------|-----|
+| `figma-developer-mcp` not in `/mcp --list` | Confirm `npm install -g figma-developer-mcp` ran; check `~/.claude/settings.json` has plugin set to `false` |
+| `403 Invalid token` | Regenerate PAT at figma.com/developers with **File content: Read** + **Dev resources: Read** scopes |
+| `File not found` | Token owner (`frontend-dev2@artemhealthtech.com`) must have access to the file |
 
 ### Impact on Jira
 
@@ -95,13 +111,26 @@ This is acceptable for an internal corporate Jira instance. For a production set
 
 ---
 
-## Figma — Authenticated and Working
+## Figma — Local MCP Active
 
-The Figma OAuth flow is complete. All three Figma commands are active:
+The Figma integration uses the local `figma-developer-mcp` server (PAT-based) via `.mcp.json`. All Figma commands are active:
 
 - `/figma-design-review` — design analysis
 - `/figma-ui-qa` — UI test case generation
 - `/figma-screenshot` — frame capture
+- `/qa-testcase-generator` — unified Jira+Figma combined (uses Figma as one source)
+
+### Smart Routing
+
+`/qa-testcase-generator` automatically detects whether arguments contain a Jira key, Figma URL, or both and routes accordingly:
+
+| Input | Workflow |
+|-------|----------|
+| `BH-5474` | Jira-only path |
+| `https://figma.com/design/abc123/...` | Figma-only path |
+| `BH-5474 https://figma.com/design/abc123/...` | Merge path — Requirement Merge Matrix + unified test cases |
+
+This is independent of `/jira-qa-testcase-generator` and `/figma-ui-qa` — all three commands coexist.
 
 If Figma tools fail to load, see `docs/FIGMA_MCP_SETUP.md` for troubleshooting.
 
@@ -109,9 +138,9 @@ If Figma tools fail to load, see `docs/FIGMA_MCP_SETUP.md` for troubleshooting.
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| OAuth prompt on startup | Expected first-time flow | Open URL in browser, authorize once |
+| `figma-developer-mcp` not in `/mcp --list` | Plugin flag wrong, package missing | Set `figma@claude-plugins-official: false`; run `npm install -g figma-developer-mcp` |
 | "File not found" | Wrong file key or no access | Verify URL, ask owner to share |
-| "Invalid API key" | Token wrong or expired | Generate new at figma.com/developers |
+| "Invalid token" / 403 | Token wrong or wrong scopes | Regenerate PAT with **File content: Read** + **Dev resources: Read** |
 | Rate limit hit | Too many API calls | Wait, reduce requests |
 
 ### Design Review Quality
@@ -130,8 +159,24 @@ The quality of Figma design reviews depends on the designer's use of Figma featu
 | Issue | Status | Affects Jira? |
 |-------|--------|---------------|
 | Slash command invocation | RESOLVED | No — both natural language and slash command work |
+| `/qa-testcase-generator` unified command | ACTIVE | No — independent routing |
 | Figma OAuth | RESOLVED | No |
 | Direct HTTPS vs MCP | Required workflow | No — MCP is the correct path |
 | Confluence separate host | Known limitation | No |
 | SSL/TLS bypass | Accepted | No |
 | Figma rate limits | Expected | No — retry later |
+
+---
+
+## Unified Generator Limitations
+
+The unified generator (`/qa-testcase-generator`) has the following known limitations:
+
+| Limitation | Impact | Mitigation |
+|-----------|--------|------------|
+| Requires valid Jira access for Jira path | Jira path fails if PAT expired or network down | Check `/mcp --list` for `mcp-atlassian`; verify VPN connected |
+| Requires valid Figma access for Figma path | Figma path fails if API key wrong or no file access | Verify `FIGMA_API_KEY` in `.env.local`; check Figma account access |
+| Figma prototype interactions not fully captured | UI test cases may miss interactive flows | Mark interaction tests accordingly; verify with live prototype |
+| Gap analysis depends on Jira/Figma quality | Missing Jira requirements or unnamed Figma layers reduce coverage | Flag ambiguities in Open Questions table; clarify with team |
+| Large Figma files may hit token limits | Deep traversal (`depth=3+`) returns partial data | Use targeted node IDs; check Figma rate limits |
+| Requirement Coverage Matrix is text-based | No automated linking to live implementation | Use matrix as QA guide, not as compliance proof |

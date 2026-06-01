@@ -9,6 +9,13 @@
         "ATLASSIAN_API_TOKEN": "${ATLASSIAN_API_TOKEN}",
         "NODE_TLS_REJECT_UNAUTHORIZED": "${NODE_TLS_REJECT_UNAUTHORIZED:-0}"
       }
+    },
+    "figma-developer-mcp": {
+      "command": "C:\\nvm4w\\nodejs\\figma-developer-mcp.cmd",
+      "args": ["--stdio"],
+      "env": {
+        "FIGMA_API_KEY": "${FIGMA_API_KEY}"
+      }
     }
   }
 }

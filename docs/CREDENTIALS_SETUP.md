@@ -13,6 +13,17 @@
 
 Jira credentials are required. Figma credentials are optional but enable design-based QA. Both go in `.env.local`.
 
+### Credential Independence
+
+**Jira and Figma credentials are completely independent:**
+
+| Credential | Used By | Host |
+|-----------|---------|------|
+| `ATLASSIAN_API_TOKEN` | Jira MCP (`mcp-atlassian`) | Internal Jira Data Center (`jira.artem.internal`) |
+| `FIGMA_API_KEY` | Figma MCP (`figma-developer-mcp`) | External Figma cloud (`api.figma.com`) |
+
+The unified generator (`/qa-testcase-generator`) automatically uses whichever source is available based on the input. Jira and Figma cannot affect each other — a Figma auth failure does not break Jira, and vice versa.
+
 ---
 
 ## Important: Three Different Credentials

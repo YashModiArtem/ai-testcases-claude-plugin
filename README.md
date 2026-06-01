@@ -273,6 +273,21 @@ Both natural language and slash command are supported.
 /figma-screenshot abc123 123:456
 ```
 
+### Unified QA Generator (Jira + Figma Combined)
+
+```powershell
+# Jira only — functional test cases from requirements
+/qa-testcase-generator BH-5474
+
+# Figma only — UI test cases from design
+/qa-testcase-generator https://figma.com/design/abc123/MyFile?node-id=123:456
+
+# Both — unified test cases merging Jira requirements and Figma UI
+/qa-testcase-generator BH-5474 https://figma.com/design/abc123/MyFile?node-id=123:456
+```
+
+The unified generator detects whether you provided Jira, Figma, or both and routes accordingly. When both are provided, it builds a Requirement Merge Matrix to identify gaps between the ticket and the design.
+
 Figma commands work with either a full URL or a file key. Node IDs are optional — if omitted, the top-level page is shown.
 
 ---
@@ -331,12 +346,32 @@ Full troubleshooting in `docs/JIRA_MCP_SETUP.md`.
 
 ## Feature Matrix
 
-| Feature | Command | Input | Output |
-|---------|---------|-------|--------|
-| Jira QA Test Cases | `/jira-qa-testcase-generator BH-XXXX` or `Generate test cases for BH-XXXX` | Jira issue key | Structured test cases (`.md` file) |
-| Figma Design Review | `/figma-design-review <url>` | Figma file URL or key | Layout analysis, component inventory |
-| Figma UI QA Test Cases | `/figma-ui-qa <url>` | Figma file URL or key | UI test cases (positive, negative, edge, etc.) |
-| Confluence Extraction | — | — | FUTURE |
+| Feature | Status | Command |
+|---------|--------|--------|
+| Jira QA Test Cases | Active | `/jira-qa-testcase-generator BH-XXXX` |
+| Figma Design Review | Active | `/figma-design-review <url>` |
+| Figma UI QA Test Cases | Active | `/figma-ui-qa <url>` |
+| Unified Jira + Figma Test Cases | Active | `/qa-testcase-generator [key] [url]` |
+| Confluence Extraction | Future | — |
+
+### Unified Jira + Figma Test Case Generator
+
+The unified generator (`/qa-testcase-generator`) detects the input type and routes accordingly:
+
+| Input | Path |
+|-------|------|
+| `BH-5474` | **Jira-only** — functional test cases from requirements |
+| `https://figma.com/design/abc123/MyFile?node-id=123:456` | **Figma-only** — UI test cases from design |
+| `BH-5474 https://figma.com/design/...` | **Merge** — unified test cases with Requirement Coverage Matrix |
+
+The merge path builds a coverage matrix mapping Jira requirements to Figma UI elements, identifying gaps and ambiguities. Output is Excel-ready tabular format.
+
+Examples:
+```
+/qa-testcase-generator BH-5474
+/qa-testcase-generator https://figma.com/design/abc123/MyFile
+/qa-testcase-generator BH-5474 https://figma.com/design/abc123/MyFile?node-id=123:456
+```
 
 
 
@@ -346,6 +381,7 @@ Full troubleshooting in `docs/JIRA_MCP_SETUP.md`.
 | PAT Authentication | **ACTIVE** |
 | Natural language test generation | **ACTIVE** (verified) |
 | `/jira-qa-testcase-generator` command | **ACTIVE** |
+| `/qa-testcase-generator` unified command | **ACTIVE** |
 | Figma MCP | **ACTIVE** (authenticated) |
 | `/figma-design-review` command | **ACTIVE** |
 | `/figma-ui-qa` command | **ACTIVE** |
