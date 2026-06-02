@@ -13,6 +13,8 @@
 | **Plugin Slash Commands** | **ACTIVE** | `/jira-qa-testcase-generator` validated |
 | **Figma Design Review** | **ACTIVE** | `/figma-design-review` authenticated and working |
 | **Figma UI QA Test Cases** | **ACTIVE** | `/figma-ui-qa` generating test cases |
+| **Unified Jira + Figma Test Cases** | **ACTIVE** | `/qa-testcase-generator` with smart routing |
+| **Excel-Ready Output Format** | **ACTIVE** | Tabular test cases ready for copy-paste export |
 | **Confluence Extraction** | **FUTURE** | Separate host — not connected |
 
 ---
@@ -127,6 +129,7 @@ Figma and Jira are **completely independent**. Jira MCP uses PAT auth to an inte
 
 The following were planned/future and are now complete:
 
+- **Unified Jira + Figma Test Case Generator** (`/qa-testcase-generator`) — smart routing, merge matrix, gap identification, Excel-ready tabular output
 - **Figma Design Review** (`/figma-design-review`) — authenticated and working
 - **Figma UI QA Test Cases** (`/figma-ui-qa`) — generating test cases from designs
 - **Slash Command Validation** — all commands active
@@ -137,11 +140,64 @@ Still planned/future:
 
 | Feature | Status | Notes |
 |---------|--------|-------|
+| Excel/XLSX direct export | FUTURE | Tabular format supports copy-paste; automated XLSX export planned |
+| QAignite direct export | FUTURE | Map columns to QAignite test case fields |
+| Jira Xray export | FUTURE | Map columns to Xray test field structure |
+| Zephyr export | FUTURE | Map columns to Zephyr test case fields |
+| Confluence extraction | FUTURE | Reverse proxy or separate MCP needed |
 | Figma → Jira automatic linkage | FUTURE | Link Figma designs to Jira tickets |
 | Figma → Confluence traceability | FUTURE | Trace design changes to requirements |
-| Figma screenshot automation | PARTIAL | `/figma-screenshot` works — export automation future |
 | Figma change impact analysis | FUTURE | Detect design changes, flag affected test cases |
-| Confluence extraction | FUTURE | Reverse proxy or separate MCP needed |
+| Automated gap detection engine | FUTURE | Compare Jira requirements against Figma designs programmatically |
+| Figma screenshot automation | PARTIAL | `/figma-screenshot` works — export automation future |
+
+---
+
+## Output Format — Excel-Ready Tabular Standard
+
+All unified test case output follows a standardized 9-section tabular format designed for direct export to QA management tools.
+
+### Section Structure
+
+| # | Section | Contents |
+|---|---------|---------|
+| 1 | **Source Summary** | Jira key/title/status, Figma file/node, generation mode, timestamp |
+| 2 | **Requirement Coverage Matrix** | Each Jira requirement mapped to Figma UI element; coverage status (Covered/Partial/Missing/Ambiguous/Extra) |
+| 3 | **Functional Test Cases** | TC ID, Module, Scenario, Preconditions, Test Steps, Expected Result, Priority |
+| 4 | **UI Test Cases** | TC ID, Screen, UI Element, Scenario, Expected Result, Priority |
+| 5 | **Validation Test Cases** | TC ID, Field/Feature, Validation Rule, Valid Input, Invalid Input, Expected Result, Priority |
+| 6 | **Negative Test Cases** | TC ID, Scenario, Invalid Data/Action, Expected Result, Priority |
+| 7 | **Accessibility Test Cases** | TC ID, Area, Accessibility Check, Standard, Expected Result, Priority |
+| 8 | **Regression Test Cases** | TC ID, Feature/Screen, Scenario, Change Summary, Expected Result, Priority |
+| 9 | **Open Questions** | ID, Question, Source, Impact, Assumption |
+
+### Export Compatibility
+
+| Format | How |
+|--------|-----|
+| **Excel (.xlsx)** | Copy-paste tables, or use a markdown-to-xlsx converter |
+| **CSV** | One CSV per table section |
+| **Jira Xray** | Map columns to Xray test field structure (Summary → Scenario, Steps → Test Steps, Expected Result → Expected Result) |
+| **Zephyr** | Map columns to Zephyr test case fields |
+| **QAignite** | Map columns to QAignite test case fields |
+
+### Format Rules
+
+- **TC ID format:** `TC-[PREFIX]-[###]` zero-padded (e.g., `TC-FN-001`, `TC-UI-042`)
+- **Prefix meanings:** FN=Functional, UI=UI, VL=Validation, NG=Negative, AX=Accessibility, RG=Regression
+- **Priority values:** Critical | High | Medium | Low (never P0/P1/P2/P3)
+- **Requirement IDs:** `R001`, `R002`, ... for the coverage matrix
+- **Open Question IDs:** `OQ-001`, `OQ-002`, ... for open questions
+- **Test Steps format:** One per line, prefixed `Step N:` — no sub-numbering
+- **No nested bullets inside cells** — use plain text with line breaks
+
+### Example
+
+```
+| TC ID     | Module         | Scenario                     | Preconditions    | Test Steps                  | Expected Result                | Priority |
+| --------- | -------------- | ---------------------------- | ---------------- | --------------------------- | ----------------------------- | -------- |
+| TC-FN-001 | Neonatal Request | Create neonatal request     | User has access  | Step 1: Navigate to...\nStep 2: Select... | Single BBR Number generated | Critical |
+```
 
 ---
 
@@ -151,12 +207,14 @@ Still planned/future:
 repo-root/
 ├── .claude/skills/           # ACTIVE skill locations
 │   ├── jira-qa-testcase-generator/SKILL.md   # ACTIVE
-│   ├── confluence-extraction/SKILL.md         # FUTURE — placeholder
-│   └── figma-ui-qa/SKILL.md                  # PHASE 1 — active with FIGMA_API_KEY
+│   ├── figma-ui-qa/SKILL.md                  # ACTIVE
+│   ├── qa-testcase-generator/SKILL.md         # ACTIVE — unified Jira+Figma
+│   └── confluence-extraction/SKILL.md         # FUTURE — placeholder
 ├── .claude/commands/
 │   ├── jira-qa-testcase-generator.md   # ACTIVE
-│   ├── figma-design-review.md          # PHASE 1 — active with FIGMA_API_KEY
-│   └── figma-screenshot.md             # PHASE 1 — active with FIGMA_API_KEY
+│   ├── figma-design-review.md          # ACTIVE
+│   ├── figma-screenshot.md             # ACTIVE
+│   └── qa-testcase-generator.md        # ACTIVE — unified command
 ├── scripts/
 │   ├── setup-atlassian-mcp.js
 │   ├── load-env.ps1
@@ -166,8 +224,8 @@ repo-root/
 │   ├── JIRA_MCP_SETUP.md
 │   ├── CREDENTIALS_SETUP.md
 │   ├── INSTALLATION_CHECKLIST.md
-│   ├── FUTURE_INTEGRATIONS.md  # Figma Phase 1 status
-│   ├── FIGMA_MCP_SETUP.md      # Figma setup instructions (NEW)
+│   ├── FUTURE_INTEGRATIONS.md
+│   ├── FIGMA_MCP_SETUP.md
 │   ├── KNOWN_ISSUES.md
 │   └── legacy/
 │       └── claude-plugin-skills-backup/
@@ -177,7 +235,42 @@ repo-root/
 │   └── commands/             # Mirrors root-level commands/
 ```
 
-**Active convention:** `.claude/skills/` and `.claude/commands/` are the canonical locations.
+## Data Flow Architecture
+
+```
+Jira (jira.artem.internal)
+     │
+     ▼
+mcp-atlassian (jira_get_issue, jira_batch_get_changelogs, jira_get_transitions)
+     │
+     ├─► jira-qa-testcase-generator  ──► Functional test cases (Jira-only path)
+     │
+     └─► qa-testcase-generator (merge path)
+              │
+              ▲
+Figma (api.figma.com)
+     │
+     ▼
+figma-developer-mcp (get_figma_data)
+     │
+     ├─► figma-ui-qa  ──► UI test cases (Figma-only path)
+     │
+     └─► qa-testcase-generator (merge path)
+              │
+              ▼
+      Requirement Coverage Matrix
+      (Jira requirements ↔ Figma UI elements)
+              │
+              ▼
+      Unified Test Cases
+      (Functional + UI + Validation + Negative + Accessibility + Regression)
+              │
+              ▼
+      Excel-Ready Tabular Output
+      (9 sections, copy-paste exportable)
+```
+
+**Unified generator** (`qa-testcase-generator`) is the canonical entry point for combined Jira + Figma workflows.
 
 ---
 

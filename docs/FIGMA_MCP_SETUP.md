@@ -1,6 +1,6 @@
 # Figma MCP Setup Guide
 
-**Status:** PHASE 1 — Active when `FIGMA_API_KEY` is set.
+**Status:** PHASE 1 — Active. Uses local `figma-developer-mcp` server (PAT-based). OAuth plugin is **disabled**.
 
 ---
 
@@ -33,8 +33,32 @@ Design data → UI test cases
 | **Figma type** | External cloud service |
 | **Auth** | API key (Personal Access Token style) |
 | **Jira impact** | None — completely independent |
-| **MCP options** | `figma@claude-plugins-official` (OAuth) or `figma-developer-mcp` (API key) |
-| **Credential** | `FIGMA_API_KEY` in `.env.local` |
+| **Active MCP** | `figma-developer-mcp` (local, PAT-based) — registered in `.mcp.json` |
+| **OAuth plugin** | `figma@claude-plugins-official` is **disabled** in `~/.claude/settings.json` |
+| **Credential** | `FIGMA_API_KEY` in `~/.claude/settings.json` env block |
+| **Figma account** | `frontend-dev2@artemhealthtech.com` — **NOT** `yash.modi@artemhealthtech.com` (that account is for Jira only) |
+
+### How It Works (Auto-Sync)
+
+The Figma MCP reads `FIGMA_API_KEY` from **`~/.claude/settings.json`** (global `env` block). To keep it in sync:
+
+1. You only edit **`./AI TestCases/.env.local`** — set `FIGMA_API_KEY` and `FIGMA_EMAIL`
+2. Run `. .\scripts\load-env.ps1` — this loads `.env.local` into your terminal AND auto-syncs `FIGMA_API_KEY` to `~/.claude/settings.json`
+3. Start Claude Code — Figma MCP uses the synced token
+
+```
+.env.local  (you edit this)
+  FIGMA_API_KEY = figd_xxx
+  FIGMA_EMAIL   = frontend-dev2@artemhealthtech.com
+       │
+       ▼  load-env.ps1 auto-syncs FIGMA_API_KEY
+~/.claude/settings.json  (MCP reads from here)
+  env.FIGMA_API_KEY = figd_xxx
+```
+
+> **No manual steps needed.** Just edit `.env.local` and run `load-env.ps1`. The script syncs silently and only updates `settings.json` if the token actually changed.
+
+> **Account mapping:** `yash.modi@artemhealthtech.com` = Jira Data Center, `frontend-dev2@artemhealthtech.com` = Figma. Never mix them.
 
 ---
 
@@ -56,44 +80,55 @@ Design data → UI test cases
 ### Step 1 — Generate a Figma API Key
 
 1. Go to [figma.com/developers](https://figma.com/developers)
-2. Sign in with your Figma account
-3. Click **Create a new OAuth app** or use the **Personal access tokens** section
-4. For personal use: navigate to **Account Settings** → **Personal Access Tokens** → **Create a new token**
-5. Name it: `Claude Code QA Plugin`
-6. Set expiry as needed
-7. **Copy immediately** — the token is shown only once
-8. Grant access to the files you need (or full account access)
+2. Sign in with your Figma account (`frontend-dev2@artemhealthtech.com`)
+3. Navigate to **Account Settings** → **Personal Access Tokens** → **Create a new token**
+4. Name it: `Claude Code QA Plugin`
+5. Set expiry as needed
+6. **Copy immediately** — the token is shown only once
+7. Grant access to the files you need (or full account access)
+8. Required scopes: **File content: Read**, **Dev resources: Read**
 
 > If you need OAuth app setup for team use, see [Figma Developers](https://figma.com/developers/docs/authentication) for full OAuth flow instructions.
 
-### Step 2 — Add to `.env.local`
+### Step 2 — Store the token
 
-Open your `.env.local` (from the repo root) and add:
+The token can live in either of two places — pick one:
 
+**Option A — `~/.claude/settings.json` env block (direct):**
+```json
+"env": {
+  ...
+  "FIGMA_API_KEY": "figd_xxxxxxxxxxxxxxxx"
+}
 ```
-FIGMA_API_KEY=your-figma-api-key
-```
 
-If you don't have a `.env.local`, copy from `.env.example`:
+**Option B — `.env.local` with auto-sync:**
+```
+FIGMA_API_KEY=figd_xxxxxxxxxxxxxxxx
+FIGMA_EMAIL=frontend-dev2@artemhealthtech.com
+```
+Then run `. .\scripts\load-env.ps1` to auto-sync `FIGMA_API_KEY` to `~/.claude/settings.json`.
+
+### Step 3 — Install the local MCP package
 
 ```powershell
-copy .env.example .env.local
-notepad .env.local
+npm install -g figma-developer-mcp
 ```
 
-Uncomment the `FIGMA_API_KEY` line and paste your key.
+This installs the `figma-developer-mcp` binary used by the `.mcp.json` server entry.
 
-### Step 3 — Load credentials
+### Step 4 — Confirm OAuth plugin is disabled
 
-```powershell
-. .\scripts\load-env.ps1
+In `~/.claude/settings.json`:
+```json
+"enabledPlugins": {
+  "figma@claude-plugins-official": false
+}
 ```
 
-The script is generic — it loads any variable from `.env.local`, including `FIGMA_API_KEY`.
+### Step 5 — Restart Claude Code
 
-### Step 4 — Restart Claude Code
-
-Restart Claude Code completely to pick up the new environment variable.
+Restart Claude Code completely so the new plugin flag and the local MCP server both load.
 
 ### Step 5 — Verify Figma MCP
 
@@ -102,9 +137,7 @@ claude
 /mcp --list
 ```
 
-Look for `figma` or `figma-framelink-mcp` in the list of connected MCP servers.
-
-If you see an OAuth authorization prompt instead, this means the Figma OAuth flow is active. This is normal for `figma@claude-plugins-official`. Complete the OAuth flow once per machine.
+Look for `figma-developer-mcp` in the list of connected MCP servers. If you see `figma@claude-plugins-official` instead, the plugin flag in `~/.claude/settings.json` is still set to `true` — flip it back to `false` and restart Claude Code.
 
 ### Step 6 — Test with a known Figma file
 
@@ -142,32 +175,45 @@ If you get "not found" or auth errors, see Troubleshooting below.
 Use the figma-ui-qa skill to generate test cases for https://www.figma.com/file/abc123/MyFile
 ```
 
+### Quick test — Unified QA Generator (Jira + Figma)
+
+```
+/qa-testcase-generator https://figma.com/design/abc123/MyFile?node-id=123:456
+/qa-testcase-generator BH-5474 https://figma.com/design/abc123/MyFile?node-id=123:456
+```
+
+The unified generator can use Figma as a standalone source or as a merge source alongside Jira. See `docs/QA_TEAM_USAGE.md` for full examples.
+
 ---
 
-## MCP Configuration Options
+## MCP Configuration
 
-The Figma MCP can be configured in two ways. Claude Code auto-detects the available server.
+The active Figma MCP is the **local `figma-developer-mcp`** (PAT-based), registered in `.mcp.json`.
 
-### Option A — Official Figma OAuth (Recommended for most users)
-
-`figma@claude-plugins-official` is globally enabled. It uses OAuth and requires a one-time browser authorization per machine.
-
-1. When prompted, click the authorization link
-2. Complete the Figma OAuth flow in your browser
-3. Return to Claude Code — Figma tools are now available
-
-This is the default for most users and requires no local configuration.
-
-### Option B — Local Developer MCP (API key)
-
-For a local `figma-developer-mcp` using the `FIGMA_API_KEY` environment variable:
+### Option A — Local `figma-developer-mcp` (ACTIVE — Recommended)
 
 1. Install the MCP: `npm install -g figma-developer-mcp`
-2. Add to `.mcp.json` (create a separate entry or use the existing format)
-3. Set `FIGMA_API_KEY` in `.env.local`
-4. Restart Claude Code
+2. Confirm the entry exists in `.mcp.json`:
+   ```json
+   "figma-developer-mcp": {
+     "command": "npx",
+     "args": ["figma-developer-mcp"],
+     "env": { "FIGMA_API_KEY": "${FIGMA_API_KEY}" }
+   }
+   ```
+3. Ensure `FIGMA_API_KEY` is in `~/.claude/settings.json` (the `env` block)
+4. Confirm `figma@claude-plugins-official` is set to `false` in `~/.claude/settings.json` `enabledPlugins`
+5. Restart Claude Code
 
-The Framelink MCP (`mcp__plugin_figma_Framelink_MCP_for_Figma__*`) is also available as a globally registered server and uses `FIGMA_API_KEY`.
+### Option B — OAuth Plugin (DISABLED)
+
+`figma@claude-plugins-official` is disabled in this setup. To re-enable:
+
+1. Set `"figma@claude-plugins-official": true` in `~/.claude/settings.json`
+2. Restart Claude Code
+3. Complete the OAuth flow when prompted
+
+This path is not actively maintained. Use Option A unless you have a specific reason to use OAuth.
 
 ---
 
@@ -175,13 +221,15 @@ The Framelink MCP (`mcp__plugin_figma_Framelink_MCP_for_Figma__*`) is also avail
 
 ### Figma auth warning / OAuth popup in Claude Code
 
-**This is expected.** `figma@claude-plugins-official` uses OAuth. Complete the authorization once per machine. This does not affect Jira functionality.
+**This should not happen** in this setup since `figma@claude-plugins-official` is disabled. If you see an OAuth prompt, the plugin flag in `~/.claude/settings.json` is still `true` — flip it to `false` and restart Claude Code.
 
 ### `/mcp --list` does not show Figma
 
-1. Figma OAuth may not be completed — look for an auth prompt in Claude Code
-2. Check if the Figma MCP server is registered: Claude Code auto-detects globally enabled plugins
-3. For local developer MCP: verify `FIGMA_API_KEY` is set in `.env.local` and `load-env.ps1` was run
+1. Confirm `figma-developer-mcp` is installed: `npm install -g figma-developer-mcp`
+2. Confirm the entry exists in `.mcp.json` (`figma-developer-mcp` server)
+3. Confirm `FIGMA_API_KEY` is set in `~/.claude/settings.json` env block (or sync from `.env.local` via `load-env.ps1`)
+4. Confirm `figma@claude-plugins-official` is set to `false` in `~/.claude/settings.json`
+5. Restart Claude Code completely
 
 ### "File not found" error
 
@@ -189,11 +237,13 @@ The Framelink MCP (`mcp__plugin_figma_Framelink_MCP_for_Figma__*`) is also avail
 - You may not have access to the Figma file — ask the file owner to share it with your email
 - The file may be archived or deleted in Figma
 
-### "Invalid API key" error
+### "Invalid API key" / Wrong Figma account error
 
-- `FIGMA_API_KEY` is incorrect or expired
-- Generate a new token at figma.com/developers
-- Update `.env.local` and restart Claude Code
+- `FIGMA_API_KEY` in `settings.json` is stale or wrong
+- Edit `FIGMA_API_KEY` in `.env.local`, then re-run `. .\scripts\load-env.ps1` — it auto-syncs to `settings.json`
+- Verify the token belongs to `frontend-dev2@artemhealthtech.com` (Figma), NOT `yash.modi@artemhealthtech.com` (Jira)
+- Restart Claude Code after sync to apply the change
+- Run a Figma tool — use `whoami` to verify the correct account is active
 
 ### Jira MCP stops working
 
@@ -236,7 +286,10 @@ The Framelink MCP (`mcp__plugin_figma_Framelink_MCP_for_Figma__*`) is also avail
 
 | Variable | Required | File | Notes |
 |----------|----------|------|-------|
-| `FIGMA_API_KEY` | Yes | `.env.local` | Figma Personal Access Token |
+| `FIGMA_API_KEY` | Yes | `.env.local` (auto-synced to `settings.json`) | Figma Personal Access Token |
+| `FIGMA_EMAIL` | Yes | `.env.local` (for reference) | Figma account email |
+
+> Set both in `.env.local`. Run `. .\scripts\load-env.ps1` to load and sync. The MCP reads `FIGMA_API_KEY` from `~/.claude/settings.json` (auto-synced by the script).
 
 ---
 
@@ -245,5 +298,7 @@ The Framelink MCP (`mcp__plugin_figma_Framelink_MCP_for_Figma__*`) is also avail
 - `docs/FUTURE_INTEGRATIONS.md` — Figma roadmap and integration status
 - `docs/CREDENTIALS_SETUP.md` — Credential patterns and safety rules
 - `.claude/skills/figma-ui-qa/SKILL.md` — Figma UI QA skill (Phase 1)
+- `.claude/skills/qa-testcase-generator/SKILL.md` — Unified Jira+Figma test case generator
 - `.claude/commands/figma-design-review.md` — Design review command
 - `.claude/commands/figma-screenshot.md` — Screenshot command
+- `.claude/commands/qa-testcase-generator.md` — Unified command

@@ -298,6 +298,19 @@ If Docker test fails → network or auth problem.
 
 ---
 
+## Unified Generator Examples
+
+The unified QA generator (`/qa-testcase-generator`) can use Jira independently or alongside Figma:
+
+```
+/qa-testcase-generator BH-5474
+/qa-testcase-generator BH-5474 https://figma.com/design/abc123/MyFile?node-id=123:456
+```
+
+The unified generator still uses `mcp-atlassian` for Jira access. When a Jira key is detected, it calls `jira_get_issue`, `jira_batch_get_changelogs`, and `jira_get_transitions` to build comprehensive test cases. See `docs/QA_TEAM_USAGE.md` for the full output format including Excel-ready tables.
+
+---
+
 ## Skill Location
 
 Active skill: `.claude/skills/jira-qa-testcase-generator/SKILL.md`.
